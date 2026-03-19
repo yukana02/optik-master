@@ -20,11 +20,12 @@ class PatientImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnE
     public static function expectedHeadings(): array
     {
         return [
-            'no_rm',
+            // 'no_rm',
             'nama',
             'tanggal_lahir',
             'jenis_kelamin',
             'no_hp',
+            'no_bpjs',
             'email',
             'alamat',
             'riwayat_penyakit',
@@ -44,6 +45,7 @@ class PatientImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnE
             'tanggal_lahir' => $row['tanggal_lahir'] ? Carbon::parse($row['tanggal_lahir']) : null,
             'jenis_kelamin' => $row['jenis_kelamin'],
             'no_hp' => $row['no_hp'],
+            'no_bpjs' => $row['no_bpjs'],
             'email' => $row['email'],
             'alamat' => $row['alamat'],
             'riwayat_penyakit' => $row['riwayat_penyakit'],
@@ -65,6 +67,7 @@ class PatientImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnE
             'tanggal_lahir' => 'nullable|date|before:today',
             'jenis_kelamin' => 'nullable|in:L,P',
             'no_hp' => 'nullable|string|max:20',
+            'no_bpjs' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:100',
             'alamat' => 'nullable|string',
             'riwayat_penyakit' => 'nullable|string',
