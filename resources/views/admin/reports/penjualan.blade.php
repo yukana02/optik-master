@@ -15,7 +15,14 @@
                 <label class="form-label small mb-1">Sampai Tanggal</label>
                 <input type="date" name="to" class="form-control form-control-sm" value="{{ $to }}">
             </div>
-            <button class="btn btn-primary btn-sm"><i class="bi bi-search me-1"></i>Filter</button>
+            <div>
+                <label class="form-label small mb-1">Jenis Pasien</label>
+                <select name="jenis" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="">Tampilkan Semua</option>
+                    <option value="bpjs" {{ request('jenis') == 'bpjs' ? 'selected' : '' }}>BPJS</option>
+                    <option value="umum" {{ request('jenis') == 'umum' ? 'selected' : '' }}>Umum</option>
+                </select>
+            </div>
             <button type="button" onclick="window.print()" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-printer me-1"></i>Cetak
             </button>
@@ -45,8 +52,8 @@
     </div>
     <div class="col-6 col-md-3">
         <div class="card p-3 text-center">
-            <div class="text-muted small">Rata-rata/Transaksi</div>
-            <div class="fw-bold text-info" style="font-size:1.1rem">Rp {{ number_format($summary['rata_per_trx'],0,',','.') }}</div>
+            <div class="text-muted small">Total Potongan BPJS</div>
+            <div class="fw-bold text-info" style="font-size:1.1rem">Rp {{ number_format($summary['total_potongan_bpjs'],0,',','.') }}</div>
         </div>
     </div>
 </div>
@@ -59,7 +66,7 @@
             <thead class="table-light">
                 <tr>
                     <th class="ps-3">No. Transaksi</th><th>Pasien</th><th>Items</th>
-                    <th>Diskon</th><th>Total Bayar</th><th>Metode</th><th>Tanggal</th>
+                    <th>No BPJS</th><th>Potongan BPJS</th><th>Total Bayar</th><th>Metode</th><th>Tanggal</th>
                 </tr>
             </thead>
             <tbody>
@@ -72,24 +79,16 @@
                     </td>
                     <td>{{ $trx->patient->nama ?? 'Umum' }}</td>
                     <td>{{ $trx->items->sum('qty') }} item</td>
-                    <td>{{ $trx->diskon_nominal > 0 ? 'Rp '.number_format($trx->diskon_nominal,0,',','.') : '-' }}</td>
+                    <td>{{ $trx->patient->no_bpjs ?? '-' }}</td>
+                    <td>{{ $trx->potongan_bpjs > 0 ? 'Rp '.number_format($trx->potongan_bpjs,0,',','.') : '-' }}</td>
                     <td class="fw-semibold">Rp {{ number_format($trx->total_bayar,0,',','.') }}</td>
                     <td>{{ ucfirst($trx->metode_bayar) }}</td>
                     <td class="text-muted small">{{ $trx->created_at->format('d M Y H:i') }}</td>
                 </tr>
                 @empty
-                <tr><td colspan="7" class="text-center text-muted py-5">Tidak ada transaksi pada periode ini</td></tr>
+                <tr><td colspan="8" class="text-center text-muted py-5">Tidak ada transaksi pada periode ini</td></tr>
                 @endforelse
             </tbody>
-            @if($transactions->count())
-            <tfoot class="table-light fw-bold">
-                <tr>
-                    <td colspan="4" class="text-end ps-3">Total:</td>
-                    <td>Rp {{ number_format($summary['total_omzet'],0,',','.') }}</td>
-                    <td colspan="2"></td>
-                </tr>
-            </tfoot>
-            @endif
         </table>
     </div>
 </div>

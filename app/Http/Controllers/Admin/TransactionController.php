@@ -42,7 +42,7 @@ class TransactionController extends Controller
             ->where('stok', '>', 0)
             ->with('category')
             ->get();
-        $patients = Patient::orderBy('nama')->get(['id', 'no_rm', 'nama']);
+        $patients = Patient::orderBy('nama')->get(['id', 'no_rm', 'nama', 'no_bpjs']);
         $medRecs  = collect();
 
         return view('admin.transactions.create', compact('products', 'patients', 'medRecs'));
@@ -59,6 +59,7 @@ class TransactionController extends Controller
             'bayar'                  => 'required|numeric|min:0',
             'diskon_persen'          => 'nullable|numeric|min:0|max:100',
             'diskon_nominal'         => 'nullable|numeric|min:0',
+            'potongan_bpjs'          => 'nullable|numeric|min:0',
         ]);
 
         DB::transaction(function () use ($request) {
@@ -95,8 +96,9 @@ class TransactionController extends Controller
                 $diskonNominal = round($totalHarga * ($diskonPersen / 100));
             }
 
-            $totalBayar = $totalHarga - $diskonNominal;
-            $kembalian  = $request->bayar - $totalBayar;
+            $potonganBpjs = $request->potongan_bpjs ?? 0;
+            $totalBayar   = $totalHarga - $diskonNominal - $potonganBpjs;
+            $kembalian    = $request->bayar - $totalBayar;
 
             // Double Protection
             if ($request->bayar < $totalBayar) {
@@ -111,6 +113,7 @@ class TransactionController extends Controller
                 'total_harga'       => $totalHarga,
                 'diskon_persen'     => $diskonPersen,
                 'diskon_nominal'    => $diskonNominal,
+                'potongan_bpjs'     => $potonganBpjs,
                 'total_bayar'       => $totalBayar,
                 'bayar'             => $request->bayar,
                 'kembalian'         => max(0, $kembalian),

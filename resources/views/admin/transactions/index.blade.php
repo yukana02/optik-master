@@ -24,7 +24,7 @@
             <thead class="table-light">
                 <tr>
                     <th class="ps-3">No. Transaksi</th><th>Pasien</th><th>Kasir</th>
-                    <th>Total</th><th>Metode</th><th>Status</th><th>Tanggal</th><th></th>
+                    <th>Total</th><th>Potongan BPJS</th><th>Metode</th><th>Status</th><th>Tanggal</th><th></th>
                 </tr>
             </thead>
             <tbody>
@@ -34,6 +34,7 @@
                     <td>{!! $trx->patient->nama ?? '<span class="text-muted small">Umum</span>' !!}</td>
                     <td>{{ $trx->kasir->name ?? '-' }}</td>
                     <td>Rp {{ number_format($trx->total_bayar,0,',','.') }}</td>
+                    <td>{{ $trx->potongan_bpjs > 0 ? 'Rp '.number_format($trx->potongan_bpjs,0,',','.') : '-' }}</td>
                     <td><span class="badge bg-light text-dark border">{{ ucfirst($trx->metode_bayar) }}</span></td>
                     <td><span class="badge badge-{{ $trx->status }}">{{ ucfirst($trx->status) }}</span></td>
                     <td class="text-muted small">{{ $trx->created_at->format('d M Y H:i') }}</td>
@@ -44,7 +45,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="8" class="text-center text-muted py-5">Belum ada transaksi</td></tr>
+                <tr><td colspan="9" class="text-center text-muted py-5">Belum ada transaksi</td></tr>
                 @endforelse
             </tbody>
         </table>

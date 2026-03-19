@@ -69,6 +69,12 @@
                 <td class="text-end text-danger">- Rp {{ number_format($transaction->diskon_nominal,0,',','.') }}</td>
             </tr>
             @endif
+            @if($transaction->potongan_bpjs > 0)
+            <tr>
+                <td class="text-end text-muted">Potongan BPJS</td>
+                <td class="text-end text-danger">- Rp {{ number_format($transaction->potongan_bpjs,0,',','.') }}</td>
+            </tr>
+            @endif
             <tr class="fw-bold border-top">
                 <td class="text-end">Total Bayar</td>
                 <td class="text-end fs-5">Rp {{ number_format($transaction->total_bayar,0,',','.') }}</td>

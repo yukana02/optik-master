@@ -31,6 +31,10 @@
                     <td>{{ $patient->no_hp ?? '-' }}</td>
                 </tr>
                 <tr>
+                    <td class="text-muted ps-0">No. BPJS</td>
+                    <td>{{ $patient->no_bpjs ?? '-' }}</td>
+                </tr>
+                <tr>
                     <td class="text-muted ps-0">Email</td>
                     <td>{{ $patient->email ?? '-' }}</td>
                 </tr>

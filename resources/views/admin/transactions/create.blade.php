@@ -111,12 +111,20 @@
                 <select name="patient_id" id="patient-select" class="form-select form-select-sm mb-2">
                     <option value="">-- Tanpa Pasien (Umum) --</option>
                     @foreach($patients as $p)
-                    <option value="{{ $p->id }}">{{ $p->no_rm }} — {{ $p->nama }}</option>
+                    <option value="{{ $p->id }}" data-bpjs="{{ $p->no_bpjs }}">{{ $p->no_rm }} — {{ $p->nama }}</option>
                     @endforeach
                 </select>
                 <select name="medical_record_id" id="med-rec-select" class="form-select form-select-sm">
                     <option value="">-- Pilih Rekam Medis --</option>
                 </select>
+                <div id="bpjs-section" class="mt-3 d-none">
+                    <label class="form-label fw-semibold">Potongan BPJS</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text">Rp</span>
+                        <input type="number" id="potongan-bpjs" name="potongan_bpjs"
+                               class="form-control" min="0" value="0" placeholder="0">
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -332,12 +340,13 @@ function updateTotal() {
     let   diskonNom   = parseFloat(document.getElementById('diskon-nominal').value) || 0;
     if (diskonP > 0) diskonNom = Math.round(subtotal * diskonP / 100);
 
-    const total       = Math.max(0, subtotal - diskonNom);
-    const bayar       = parseFloat(document.getElementById('bayar-input').value) || 0;
-    const kembalian   = bayar - total;
+    const potonganBpjs = parseFloat(document.getElementById('potongan-bpjs').value) || 0;
+    const total        = Math.max(0, subtotal - diskonNom - potonganBpjs);
+    const bayar        = parseFloat(document.getElementById('bayar-input').value) || 0;
+    const kembalian    = bayar - total;
 
     document.getElementById('subtotal-text').textContent  = 'Rp ' + formatNum(subtotal);
-    document.getElementById('diskon-text').textContent    = '- Rp ' + formatNum(diskonNom);
+    document.getElementById('diskon-text').textContent    = '- Rp ' + formatNum(diskonNom + potonganBpjs);
     document.getElementById('total-display').textContent  = 'Rp ' + formatNum(total);
     document.getElementById('kembalian-display').textContent = 'Rp ' + formatNum(Math.max(0, kembalian));
     document.getElementById('kembalian-display').style.color = kembalian < 0 ? '#dc3545' : '#16a34a';
@@ -358,6 +367,7 @@ function updateTotal() {
 
 document.getElementById('diskon-persen').addEventListener('input', updateTotal);
 document.getElementById('diskon-nominal').addEventListener('input', updateTotal);
+document.getElementById('potongan-bpjs').addEventListener('input', updateTotal);
 document.getElementById('bayar-input').addEventListener('input', updateTotal);
 
 function setBayar(val) {
@@ -365,12 +375,13 @@ function setBayar(val) {
     updateTotal();
 }
 function setBayarPas() {
-    const items     = Object.values(cart);
-    const subtotal  = items.reduce((s, i) => s + (i.harga_satuan * i.qty), 0);
-    const diskonP   = parseFloat(document.getElementById('diskon-persen').value) || 0;
-    let   diskonNom = parseFloat(document.getElementById('diskon-nominal').value) || 0;
+    const items       = Object.values(cart);
+    const subtotal    = items.reduce((s, i) => s + (i.harga_satuan * i.qty), 0);
+    const diskonP     = parseFloat(document.getElementById('diskon-persen').value) || 0;
+    let   diskonNom   = parseFloat(document.getElementById('diskon-nominal').value) || 0;
     if (diskonP > 0) diskonNom = Math.round(subtotal * diskonP / 100);
-    document.getElementById('bayar-input').value = Math.max(0, subtotal - diskonNom);
+    const potonganBpjs = parseFloat(document.getElementById('potongan-bpjs').value) || 0;
+    document.getElementById('bayar-input').value = Math.max(0, subtotal - diskonNom - potonganBpjs);
     updateTotal();
 }
 
@@ -389,8 +400,20 @@ function syncHiddenInputs() {
 document.getElementById('patient-select').addEventListener('change', async function () {
     const patientId = this.value;
     const sel = document.getElementById('med-rec-select');
+    const bpjsSection = document.getElementById('bpjs-section');
+    const potonganBpjs = document.getElementById('potongan-bpjs');
+
     sel.innerHTML = '<option value="">-- Pilih Rekam Medis --</option>';
+    bpjsSection.classList.add('d-none');
+    potonganBpjs.value = 0;
+
     if (!patientId) return;
+
+    // Check BPJS
+    const selectedOption = this.querySelector(`option[value="${patientId}"]`);
+    if (selectedOption && selectedOption.dataset.bpjs) {
+        bpjsSection.classList.remove('d-none');
+    }
 
     try {
         const res  = await fetch(`{{ route('transactions.medical-records') }}?patient_id=${patientId}`, {

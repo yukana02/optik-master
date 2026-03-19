@@ -19,16 +19,26 @@ class ReportController extends Controller
         $from = $request->from ?? now()->startOfMonth()->format('Y-m-d');
         $to   = $request->to   ?? now()->format('Y-m-d');
 
-        $transactions = Transaction::with(['patient', 'kasir', 'items'])
+        $query = Transaction::with(['patient', 'kasir', 'items'])
             ->whereBetween(DB::raw('DATE(created_at)'), [$from, $to])
-            ->where('status', 'lunas')
-            ->latest()
-            ->get();
+            ->where('status', 'lunas');
+
+        if ($request->jenis == 'bpjs') {
+            $query->whereHas('patient', fn($q) => $q->whereNotNull('no_bpjs'));
+        } elseif ($request->jenis == 'umum') {
+            $query->where(function ($q) {
+                $q->whereNull('patient_id')
+                  ->orWhereHas('patient', fn($p) => $p->whereNull('no_bpjs'));
+            });
+        }
+
+        $transactions = $query->latest()->get();
 
         $summary = [
             'total_transaksi' => $transactions->count(),
             'total_omzet'     => $transactions->sum('total_bayar'),
             'total_diskon'    => $transactions->sum('diskon_nominal'),
+            'total_potongan_bpjs' => $transactions->sum('potongan_bpjs'),
             'rata_per_trx'    => $transactions->count()
                 ? round($transactions->sum('total_bayar') / $transactions->count())
                 : 0,

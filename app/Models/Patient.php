@@ -16,6 +16,7 @@ class Patient extends Model
         'tanggal_lahir',
         'jenis_kelamin',
         'no_hp',
+        'no_bpjs',
         'email',
         'alamat',
         'riwayat_penyakit',

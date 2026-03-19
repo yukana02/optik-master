@@ -36,6 +36,7 @@
                     <th>Nama</th>
                     <th>J/K</th>
                     <th>No. HP</th>
+                    <th>No. BPJS</th>
                     <th>Kunjungan Terakhir</th>
                     <th>Aksi</th>
                 </tr>
@@ -55,6 +56,7 @@
                     </td>
                     <td>{{ $p->jenis_kelamin == 'L' ? 'Laki-laki' : ($p->jenis_kelamin == 'P' ? 'Perempuan' : '-') }}</td>
                     <td>{{ $p->no_hp ?? '-' }}</td>
+                    <td>{{ $p->no_bpjs ?? '-' }}</td>
                     <td>
                         @if($p->latestRecord)
                             {{ $p->latestRecord->tanggal_kunjungan->format('d M Y') }}
@@ -86,7 +88,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="text-center text-muted py-5">
+                    <td colspan="8" class="text-center text-muted py-5">
                         <i class="bi bi-people fs-1 d-block mb-2 opacity-25"></i>
                         Belum ada data pasien
                     </td>

@@ -12,7 +12,7 @@ class Transaction extends Model
 
     protected $fillable = [
         'no_transaksi', 'patient_id', 'user_id', 'medical_record_id',
-        'total_harga', 'diskon_persen', 'diskon_nominal', 'total_bayar',
+        'total_harga', 'diskon_persen', 'diskon_nominal', 'potongan_bpjs', 'total_bayar',
         'bayar', 'kembalian', 'metode_bayar', 'status', 'catatan',
     ];
 
