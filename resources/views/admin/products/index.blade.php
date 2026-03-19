@@ -36,7 +36,6 @@
             <thead class="table-light">
                 <tr>
                     <th class="ps-3">#</th>
-                    <th>Gambar</th>
                     <th>Kode</th>
                     <th>Nama Produk</th>
                     <th>Kategori</th>
@@ -50,10 +49,7 @@
                 @forelse($products as $i => $p)
                 <tr>
                     <td class="ps-3 text-muted">{{ $products->firstItem() + $i }}</td>
-                    <td>
-                        <img src="{{ $p->gambar_url }}" alt="{{ $p->nama }}"
-                             style="width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid #eee">
-                    </td>
+                    
                     <td><span class="badge bg-secondary">{{ $p->kode_produk }}</span></td>
                     <td>
                         <div class="fw-semibold">{{ $p->nama }}</div>

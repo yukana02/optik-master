@@ -98,24 +98,6 @@
     </div>
 </div>
 
-<div class="card mb-3">
-    <div class="card-header p-3"><i class="bi bi-image text-info me-2"></i>Foto Produk</div>
-    <div class="card-body p-4">
-        <div class="row align-items-center g-3">
-            <div class="col-md-6">
-                <input type="file" name="gambar" class="form-control @error('gambar') is-invalid @enderror"
-                       accept="image/*" onchange="previewGambar(this)">
-                <small class="text-muted">Format: JPG, PNG, WEBP. Maks: 2MB</small>
-                @error('gambar')<div class="invalid-feedback">{{ $message }}</div>@enderror
-            </div>
-            <div class="col-md-3">
-                <img id="preview-gambar" src="{{ asset('images/no-image.png') }}" alt="Preview"
-                     style="width:100px;height:100px;object-fit:cover;border-radius:12px;border:2px dashed #dee2e6">
-            </div>
-        </div>
-    </div>
-</div>
-
 <div class="d-flex gap-2">
     <button type="submit" class="btn btn-primary px-4">
         <i class="bi bi-check-lg me-1"></i>Simpan Produk
@@ -125,16 +107,4 @@
 </form>
 </div>
 </div>
-
-@push('scripts')
-<script>
-function previewGambar(input) {
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = e => document.getElementById('preview-gambar').src = e.target.result;
-        reader.readAsDataURL(input.files[0]);
-    }
-}
-</script>
-@endpush
 @endsection

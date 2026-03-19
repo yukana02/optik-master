@@ -98,15 +98,6 @@
     <div class="card-header p-3"><i class="bi bi-image text-info me-2"></i>Foto Produk</div>
     <div class="card-body p-4">
         <div class="row align-items-center g-3">
-            <div class="col-md-6">
-                <input type="file" name="gambar" class="form-control" accept="image/*"
-                       onchange="previewGambar(this)">
-                <small class="text-muted">Kosongkan jika tidak ingin mengubah foto</small>
-            </div>
-            <div class="col-md-3">
-                <img id="preview-gambar" src="{{ $product->gambar_url }}" alt="{{ $product->nama }}"
-                     style="width:100px;height:100px;object-fit:cover;border-radius:12px;border:2px solid #dee2e6">
-            </div>
         </div>
     </div>
 </div>
@@ -121,15 +112,4 @@
 </div>
 </div>
 
-@push('scripts')
-<script>
-function previewGambar(input) {
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = e => document.getElementById('preview-gambar').src = e.target.result;
-        reader.readAsDataURL(input.files[0]);
-    }
-}
-</script>
-@endpush
 @endsection

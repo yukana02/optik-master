@@ -6,8 +6,7 @@
 <div class="row g-3">
     <div class="col-md-4">
         <div class="card p-3 text-center mb-3">
-            <img src="{{ $product->gambar_url }}" alt="{{ $product->nama }}"
-                 class="img-fluid rounded mb-3" style="max-height:220px;object-fit:contain">
+          
             <span class="badge bg-secondary mb-1">{{ $product->kode_produk }}</span>
             <h5 class="fw-bold mb-1">{{ $product->nama }}</h5>
             @if($product->merek)
