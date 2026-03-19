@@ -92,9 +92,9 @@
                     <div class="col-auto">
                         <div class="input-group input-group-sm">
                             <span class="input-group-text">Rp</span>
-                            <input type="number" id="diskon-nominal" name="diskon_nominal"
+                            <input type="text" id="diskon-nominal" name="diskon_nominal"
                                    class="form-control" style="width:130px"
-                                   min="0" value="0" placeholder="0">
+                                   value="0" placeholder="0">
                         </div>
                     </div>
                 </div>
@@ -121,8 +121,8 @@
                     <label class="form-label fw-semibold">Potongan BPJS</label>
                     <div class="input-group input-group-sm">
                         <span class="input-group-text">Rp</span>
-                        <input type="number" id="potongan-bpjs" name="potongan_bpjs"
-                               class="form-control" min="0" value="0" placeholder="0">
+                        <input type="text" id="potongan-bpjs" name="potongan_bpjs"
+                               class="form-control" value="0" placeholder="0">
                     </div>
                 </div>
             </div>
@@ -167,9 +167,9 @@
                     <label class="form-label fw-semibold">Jumlah Bayar</label>
                     <div class="input-group">
                         <span class="input-group-text">Rp</span>
-                        <input type="number" name="bayar" id="bayar-input"
+                        <input type="text" name="bayar" id="bayar-input"
                                class="form-control form-control-lg fw-bold"
-                               min="0" value="0" required>
+                               value="0" required>
                     </div>
                     <div class="invalid-feedback">
                         Jumlah bayar kurang dari total!
@@ -337,12 +337,12 @@ function updateTotal() {
     const items       = Object.values(cart);
     const subtotal    = items.reduce((s, i) => s + (i.harga_satuan * i.qty), 0);
     const diskonP     = parseFloat(document.getElementById('diskon-persen').value) || 0;
-    let   diskonNom   = parseFloat(document.getElementById('diskon-nominal').value) || 0;
+    let   diskonNom   = parseAngka(document.getElementById('diskon-nominal').value);
     if (diskonP > 0) diskonNom = Math.round(subtotal * diskonP / 100);
 
-    const potonganBpjs = parseFloat(document.getElementById('potongan-bpjs').value) || 0;
+    const potonganBpjs = parseAngka(document.getElementById('potongan-bpjs').value);
     const total        = Math.max(0, subtotal - diskonNom - potonganBpjs);
-    const bayar        = parseFloat(document.getElementById('bayar-input').value) || 0;
+    const bayar        = parseAngka(document.getElementById('bayar-input').value);
     const kembalian    = bayar - total;
 
     document.getElementById('subtotal-text').textContent  = 'Rp ' + formatNum(subtotal);
@@ -371,7 +371,8 @@ document.getElementById('potongan-bpjs').addEventListener('input', updateTotal);
 document.getElementById('bayar-input').addEventListener('input', updateTotal);
 
 function setBayar(val) {
-    document.getElementById('bayar-input').value = val;
+    const input = document.getElementById('bayar-input');
+    input.value = formatRibuan(val);
     updateTotal();
 }
 function setBayarPas() {
@@ -382,6 +383,8 @@ function setBayarPas() {
     if (diskonP > 0) diskonNom = Math.round(subtotal * diskonP / 100);
     const potonganBpjs = parseFloat(document.getElementById('potongan-bpjs').value) || 0;
     document.getElementById('bayar-input').value = Math.max(0, subtotal - diskonNom - potonganBpjs);
+    const input = document.getElementById('bayar-input');
+    input.value = formatRibuan(total);
     updateTotal();
 }
 
@@ -439,12 +442,43 @@ document.getElementById('pos-form').addEventListener('submit', function (e) {
         alert('Keranjang belanja kosong! Tambahkan produk terlebih dahulu.');
         return;
     }
+
+    document.getElementById('pos-form').addEventListener('submit', function () {
+        ['bayar-input', 'diskon-nominal', 'potongan-bpjs'].forEach(id => {
+            const el = document.getElementById(id);
+            el.value = parseAngka(el.value);
+        });
+    });
+
     syncHiddenInputs();
     this.appendChild(document.getElementById('hidden-items'));
 });
 
 function formatNum(n) {
     return new Intl.NumberFormat('id-ID').format(Math.round(n));
+}
+
+// ===================== Format Number Input =====================
+setupCurrencyInput(document.getElementById('diskon-nominal'));
+setupCurrencyInput(document.getElementById('potongan-bpjs'));
+setupCurrencyInput(document.getElementById('bayar-input'));
+
+// format ke 1.000.000
+function formatRibuan(value) {
+    return new Intl.NumberFormat('id-ID').format(value);
+}
+
+// ambil angka asli (hapus titik)
+function parseAngka(value) {
+    return parseInt(value.replace(/\./g, '')) || 0;
+}
+
+function setupCurrencyInput(el) {
+    el.addEventListener('input', function () {
+        let angka = parseAngka(this.value);
+        this.value = formatRibuan(angka);
+        updateTotal();
+    });
 }
 </script>
 @endpush

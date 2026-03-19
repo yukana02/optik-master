@@ -50,6 +50,13 @@ class TransactionController extends Controller
 
     public function store(Request $request)
     {
+        // Normalize string to numeric input
+        $request->merge([
+            'bayar'            => (int) str_replace('.', '', $request->bayar),
+            'diskon_nominal'   => (int) str_replace('.', '', $request->diskon_nominal),
+            'potongan_bpjs'    => (int) str_replace('.', '', $request->potongan_bpjs),
+        ]);
+
         $request->validate([
             'items'                  => 'required|array|min:1',
             'items.*.product_id'     => 'required|exists:products,id',
