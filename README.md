@@ -7,52 +7,225 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
-## About Laravel
+# 📝 About This App
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Aplikasi Manajemen Optik adalah sistem berbasis web yang dirancang untuk membantu operasional toko optik secara terintegrasi. Aplikasi ini menggabungkan fitur **Point of Sale (POS)** dengan **rekam medis pasien**, sehingga proses penjualan dan pelayanan dapat berjalan lebih efisien dalam satu platform.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Pengguna dapat mengelola transaksi penjualan, mencatat hasil pemeriksaan mata, serta memantau riwayat pasien secara terstruktur.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## 🎯 Fitur Utama
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+### 💳 Point of Sale (POS)
+- Transaksi penjualan produk optik (frame, lensa, aksesoris)
+- Cetak struk
+- Manajemen pembayaran
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 👁️ Rekam Medis Pasien
+- Input hasil pemeriksaan mata (minus, plus, silinder, dll)
+- Riwayat pemeriksaan pasien
+- Data resep kacamata
 
-## Laravel Sponsors
+### 📦 Manajemen Produk & Stok
+- Kelola data produk
+- Monitoring stok barang
+- Kategori produk
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### 👥 Manajemen Pelanggan
+- Data pasien/customer
+- Riwayat transaksi & pemeriksaan
 
-### Premium Partners
+### 📊 Laporan
+- Laporan penjualan
+- Laporan stok
+- Riwayat transaksi
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+# 📘 Laravel Project Setup & Git Collaboration Guide
 
-## Contributing
+Panduan ini dibuat untuk membantu tim dalam menjalankan project Laravel serta workflow Git yang rapi.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+---
 
-## Code of Conduct
+## 🚀 1. Clone Repository
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+git clone <repository-url>
+cd <nama-project>
+```
 
-## Security Vulnerabilities
+---
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## ⚙️ 2. Install Dependencies
+
+### Install PHP Dependencies (Composer)
+
+```bash
+composer install
+```
+
+### Install JavaScript Dependencies (NPM)
+
+```bash
+npm install
+```
+
+---
+
+## 🔑 3. Setup Environment
+
+Copy file environment:
+
+```bash
+cp .env.example .env
+```
+
+Generate app key:
+
+```bash
+php artisan key:generate
+```
+
+Atur konfigurasi database di file `.env`
+
+---
+
+## 🗄️ 4. Database Migration & Seeding
+
+```bash
+php artisan migrate --seed
+```
+
+---
+
+## ▶️ 5. Run Project
+
+```bash
+php artisan serve
+npm run dev
+```
+
+Akses di browser:
+
+```
+http://localhost:8000
+```
+
+---
+
+# 🔀 Git Workflow (Team Collaboration)
+
+## 🌿 Branch Structure
+
+* `main` → production (stabil)
+* `dev` → development (tempat kerja)
+* `feature/*` → fitur per developer
+
+---
+
+## 🧑‍💻 Cara Mulai Kerja
+
+### 1. Pindah ke branch dev
+
+```bash
+git checkout dev
+```
+
+### 2. Ambil update terbaru
+
+```bash
+git pull origin dev
+```
+
+### 3. Buat branch fitur (opsional tapi disarankan)
+
+```bash
+git checkout -b feature/nama-fitur
+```
+
+---
+
+## ✏️ Setelah Coding
+
+### 1. Tambahkan perubahan
+
+```bash
+git add .
+```
+
+### 2. Commit perubahan
+
+```bash
+git commit -m "feat: deskripsi perubahan"
+```
+
+### 3. Push ke remote
+
+Jika pakai branch fitur:
+
+```bash
+git push origin feature/nama-fitur
+```
+
+Jika langsung ke dev:
+
+```bash
+git push origin dev
+```
+
+---
+
+## 🔁 Update Code dari Tim
+
+```bash
+git pull origin dev
+```
+
+---
+
+## 🔀 Merge ke Main
+
+Jika fitur sudah selesai dan stabil:
+
+```bash
+git checkout main
+git pull origin main
+git merge dev
+git push origin main
+```
+
+Atau gunakan Pull Request (disarankan)
+
+---
+
+## ⚠️ Best Practices
+
+* Jangan commit langsung ke `main`
+* Selalu `git pull` sebelum mulai kerja
+* Gunakan nama commit yang jelas (feat, fix, chore, dll)
+* Gunakan branch `feature/*` untuk setiap fitur
+
+---
+
+## 🧪 Troubleshooting
+
+### Error 500 saat import/export
+
+* Cek log: `storage/logs/laravel.log`
+* Pastikan format file sesuai
+* Validasi data sebelum import
+
+---
+
+## 📌 Catatan
+
+Pastikan:
+
+* PHP versi sesuai
+* Composer & Node.js sudah terinstall
+* Database sudah dibuat
+
+---
 
 ## License
 
