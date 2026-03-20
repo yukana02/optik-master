@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Dashboard') — Optik Perkasa</title>
-
+    <link rel="icon" href="https://optikperkasa.com/wp-content/uploads/2025/10/cropped-3-3-32x32.png" sizes="32x32" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
@@ -108,7 +108,7 @@
 {{-- SIDEBAR --}}
 <nav class="sidebar" id="sidebar">
     <a href="{{ route('dashboard') }}" class="sidebar-brand">
-        <i class="bi bi-eyeglasses fs-4"></i>
+        <img src="/icon.png" alt="Optik Perkasa" width="40" height="40">
         <span>Optik Perkasa</span>
     </a>
 

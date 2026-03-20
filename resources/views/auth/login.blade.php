@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login — Optik Perkasa</title>
+    <link rel="icon" href="https://optikperkasa.com/wp-content/uploads/2025/10/cropped-3-3-32x32.png" sizes="32x32" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <style>
@@ -44,7 +45,7 @@
 <body>
     <div class="login-card">
         <div class="login-header">
-            <div class="logo-icon"><i class="bi bi-eyeglasses"></i></div>
+            <div class="logo-icon"><img src="/icon.png" alt="Optik Perkasa" width="80" height="80"></div>
             <h4>Optik Perkasa</h4>
             <p>Sistem Manajemen Optik</p>
         </div>
