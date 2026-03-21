@@ -77,7 +77,7 @@
                                     @endcan
                                     @can('category.delete')
                                     <form method="POST" action="{{ route('categories.destroy', $cat) }}"
-                                          onsubmit="return confirm('Hapus kategori {{ $cat->nama }}?')">
+                                          data-confirm="Hapus kategori {{ $cat->nama }}?">
                                         @csrf @method('DELETE')
                                         <button class="btn btn-xs btn-outline-danger" title="Hapus">
                                             <i class="bi bi-trash"></i>

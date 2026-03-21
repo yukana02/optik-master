@@ -44,7 +44,7 @@
                             </a>
                             @if($u->id !== auth()->id())
                             <form method="POST" action="{{ route('users.destroy',$u) }}"
-                                  onsubmit="return confirm('Hapus user {{ $u->name }}?')">
+                                  data-confirm="Hapus user {{ $u->name }}?">
                                 @csrf @method('DELETE')
                                 <button class="btn btn-xs btn-outline-danger"><i class="bi bi-trash"></i></button>
                             </form>

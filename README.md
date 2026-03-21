@@ -1,232 +1,125 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Optik Master — Sistem Manajemen Toko Optik
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
-
-# 📝 About This App
-
-Aplikasi Manajemen Optik adalah sistem berbasis web yang dirancang untuk membantu operasional toko optik secara terintegrasi. Aplikasi ini menggabungkan fitur **Point of Sale (POS)** dengan **rekam medis pasien**, sehingga proses penjualan dan pelayanan dapat berjalan lebih efisien dalam satu platform.
-
-Pengguna dapat mengelola transaksi penjualan, mencatat hasil pemeriksaan mata, serta memantau riwayat pasien secara terstruktur.
+Laravel 12 · PHP 8.2+ · Bootstrap 5 · MySQL
 
 ---
 
-## 🎯 Fitur Utama
+## Fitur Lengkap
 
-### 💳 Point of Sale (POS)
-- Transaksi penjualan produk optik (frame, lensa, aksesoris)
-- Cetak struk
-- Manajemen pembayaran
-
-### 👁️ Rekam Medis Pasien
-- Input hasil pemeriksaan mata (minus, plus, silinder, dll)
-- Riwayat pemeriksaan pasien
-- Data resep kacamata
-
-### 📦 Manajemen Produk & Stok
-- Kelola data produk
-- Monitoring stok barang
-- Kategori produk
-
-### 👥 Manajemen Pelanggan
-- Data pasien/customer
-- Riwayat transaksi & pemeriksaan
-
-### 📊 Laporan
-- Laporan penjualan
-- Laporan stok
-- Riwayat transaksi
-
-# 📘 Laravel Project Setup & Git Collaboration Guide
-
-Panduan ini dibuat untuk membantu tim dalam menjalankan project Laravel serta workflow Git yang rapi.
+| Modul | Fitur |
+|---|---|
+| **Auth** | Login, Logout, Concurrent session detection, Auto-logout (inaktif 30 menit) |
+| **RBAC** | 4 role: `super_admin`, `admin`, `dokter`, `kasir` · 23 permission granular |
+| **Pasien** | CRUD + SoftDelete · No. RM auto-generate · BPJS · Cetak Kartu Pasien |
+| **Rekam Medis** | Input resep OD/OS lengkap (SPH, CYL, AXIS, ADD, PD, VIS) · Linked ke transaksi |
+| **Produk** | CRUD + SoftDelete · Upload gambar · Kode auto-generate · Alert stok menipis |
+| **Kategori** | CRUD + SoftDelete · Status aktif/nonaktif |
+| **POS / Transaksi** | Keranjang dinamis · Diskon item + transaksi · Subsidi BPJS · Multi metode bayar · Cetak Invoice |
+| **Supplier** | CRUD · Kode auto-generate · Riwayat PO |
+| **Purchase Order** | Buat PO · Terima (update stok otomatis + catat mutasi masuk) · Batalkan |
+| **Mutasi Stok** | Otomatis tercatat saat transaksi, pembatalan, dan penerimaan PO |
+| **Import/Export** | Import produk & pasien dari Excel/CSV · Export ke Excel |
+| **Laporan** | Penjualan · Produk Terlaris · Stok · Mutasi Stok · Export CSV · Cetak PDF |
+| **Activity Log** | Rekam semua aktivitas user (modul, aksi, IP, timestamp) |
+| **Dashboard** | Stat cards · Grafik omzet 7 hari (1 query) · Stok menipis · Top produk |
 
 ---
 
-## 🚀 1. Clone Repository
+## Instalasi
+
+### Prasyarat
+- PHP 8.2+
+- Composer
+- MySQL / MariaDB
+- Node.js 18+
+
+### Langkah Setup
 
 ```bash
-git clone <repository-url>
-cd <nama-project>
-```
+# 1. Clone / ekstrak project
+cd optik-master
 
----
-
-## ⚙️ 2. Install Dependencies
-
-### Install PHP Dependencies (Composer)
-
-```bash
+# 2. Install dependencies
 composer install
-```
 
-### Install JavaScript Dependencies (NPM)
-
-```bash
-npm install
-```
-
----
-
-## 🔑 3. Setup Environment
-
-Copy file environment:
-
-```bash
+# 3. Copy .env dan generate key
 cp .env.example .env
-```
-
-Generate app key:
-
-```bash
 php artisan key:generate
-```
 
-Atur konfigurasi database di file `.env`
+# 4. Sesuaikan .env — isi DB_DATABASE, DB_USERNAME, DB_PASSWORD
 
----
+# 5. Buat database MySQL
+mysql -u root -p -e "CREATE DATABASE optik_store;"
 
-## 🗄️ 4. Database Migration & Seeding
-
-```bash
+# 6. Migrasi + Seeder
 php artisan migrate --seed
-```
 
----
+# 7. Install & build frontend
+npm install
+npm run build
 
-## ▶️ 5. Run Project
+# 8. Storage link
+php artisan storage:link
 
-```bash
+# 9. Jalankan server
 php artisan serve
-npm run dev
 ```
 
-Akses di browser:
+Buka: http://localhost:8000
+
+---
+
+## Akun Default
+
+| Role | Email | Password |
+|---|---|---|
+| Super Admin | superadmin@optik.com | password |
+| Admin | admin@optik.com | password |
+| Dokter | dokter@optik.com | password |
+| Kasir | kasir@optik.com | password |
+
+---
+
+## Hak Akses per Role
+
+| Permission | super_admin | admin | dokter | kasir |
+|---|:---:|:---:|:---:|:---:|
+| Pasien CRUD | ✅ | ✅ | ✅ | Lihat + Tambah |
+| Rekam Medis CRUD | ✅ | ✅ | ✅ | Lihat |
+| Produk CRUD | ✅ | ✅ | ❌ | Lihat |
+| Transaksi | ✅ | ✅ | ❌ | Lihat + Buat |
+| Supplier & PO | ✅ | ✅ | ❌ | ❌ |
+| Laporan | ✅ | ✅ | ❌ | ❌ |
+| Manajemen User | ✅ | ❌ | ❌ | ❌ |
+| Activity Log | ✅ | ❌ | ❌ | ❌ |
+
+---
+
+## Struktur Database
 
 ```
-http://localhost:8000
+users               — akun pengguna + session_token
+patients            — data pasien + no_bpjs
+medical_records     — resep mata OD/OS lengkap
+categories          — kategori produk
+products            — inventaris produk
+transactions        — header transaksi (BPJS, diskon, metode bayar)
+transaction_items   — detail item transaksi
+stock_movements     — mutasi stok (masuk/keluar/retur/adjustment)
+suppliers           — data supplier
+purchase_orders     — pembelian ke supplier
+purchase_order_items— item PO
+activity_logs       — audit trail aktivitas user
+permissions/roles   — Spatie Laravel Permission
 ```
 
 ---
 
-# 🔀 Git Workflow (Team Collaboration)
+## Catatan Teknis
 
-## 🌿 Branch Structure
-
-* `main` → production (stabil)
-* `develop` → development (tempat kerja)
-* `feature/*` → fitur per developer
-
----
-
-## 🧑‍💻 Cara Mulai Kerja
-
-### 1. Pindah ke branch develop
-
-```bash
-git checkout develop
-```
-
-### 2. Ambil update terbaru
-
-```bash
-git pull origin develop
-```
-
-### 3. Buat branch fitur (opsional tapi disarankan)
-
-```bash
-git checkout -b feature/nama-fitur
-```
-
----
-
-## ✏️ Setelah Coding
-
-### 1. Tambahkan perubahan
-
-```bash
-git add .
-```
-
-### 2. Commit perubahan
-
-```bash
-git commit -m "feat: deskripsi perubahan"
-```
-
-### 3. Push ke remote
-
-Jika pakai branch fitur:
-
-```bash
-git push origin feature/nama-fitur
-```
-
-Jika langsung ke develop:
-
-```bash
-git push origin develop
-```
-
----
-
-## 🔁 Update Code dari Tim
-
-```bash
-git pull origin develop
-```
-
----
-
-## 🔀 Merge ke Main
-
-Jika fitur sudah selesai dan stabil:
-
-```bash
-git checkout main
-git pull origin main
-git merge develop
-git push origin main
-```
-
-Atau gunakan Pull Request (disarankan)
-
----
-
-## ⚠️ Best Practices
-
-* Jangan commit langsung ke `main`
-* Selalu `git pull` sebelum mulai kerja
-* Gunakan nama commit yang jelas (feat, fix, chore, dll)
-* Gunakan branch `feature/*` untuk setiap fitur
-
----
-
-## 🧪 Troubleshooting
-
-### Error 500 saat import/export
-
-* Cek log: `storage/logs/laravel.log`
-* Pastikan format file sesuai
-* Validasi data sebelum import
-
----
-
-## 📌 Catatan
-
-Pastikan:
-
-* PHP versi sesuai
-* Composer & Node.js sudah terinstall
-* Database sudah dibuat
-
----
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- **Form Request** dipakai di semua form utama (Patient, Product, Transaction, MedicalRecord)
+- **DB::transaction()** + `lockForUpdate()` di setiap operasi stok untuk mencegah race condition
+- **N+1 query** sudah dioptimasi — Dashboard grafik omzet 7 hari = 1 query (bukan 7)
+- **ActivityLog::catat()** static helper tersedia untuk dipanggil dari controller manapun
+- **SoftDeletes** di: patients, medical_records, products, categories, transactions, suppliers, purchase_orders
+- Semua route permission granular per method (view/create/edit/delete terpisah)

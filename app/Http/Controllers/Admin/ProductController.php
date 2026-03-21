@@ -3,15 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreProductRequest;
+use App\Http\Requests\Admin\UpdateProductRequest;
 use App\Models\{Product, Category};
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use App\Exports\ProductExport;
-use App\Imports\ProductImport;
-use Maatwebsite\Excel\Facades\Excel;
-use Maatwebsite\Excel\HeadingRowImport;
 
 class ProductController extends Controller
 {
@@ -48,33 +44,31 @@ class ProductController extends Controller
         return view('admin.products.create', compact('categories'));
     }
 
-    public function store(Request $request)
+    public function store(StoreProductRequest $request)
     {
-        $validated = $request->validate([
-            'category_id'   => 'required|exists:categories,id',
-            'nama'          => 'required|string|max:150',
-            'deskripsi'     => 'nullable|string',
-            'merek'         => 'nullable|string|max:100',
-            'harga_beli'    => 'required|numeric|min:0',
-            'harga_jual'    => 'required|numeric|min:0',
-            'stok'          => 'required|integer|min:0',
-            'stok_minimum'  => 'required|integer|min:0',
-            'satuan'        => 'required|string|max:20',
-            'gambar'        => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'is_active'     => 'boolean',
-        ]);
+        $data = [
+            'category_id'  => $request->category_id,
+            'nama'         => $request->nama,
+            'deskripsi'    => $request->deskripsi,
+            'merek'        => $request->merek,
+            'harga_beli'   => $request->harga_beli,
+            'harga_jual'   => $request->harga_jual,
+            'stok'         => $request->stok,
+            'stok_minimum' => $request->stok_minimum,
+            'satuan'       => $request->satuan,
+            'is_active'    => $request->boolean('is_active', true),
+            'kode_produk'  => Product::generateKode(),
+        ];
 
-        $validated['kode_produk'] = Product::generateKode();
-        $validated['is_active']   = $request->boolean('is_active', true);
-
-        if ($request->hasFile('gambar')) {
-            $validated['gambar'] = $request->file('gambar')->store('products', 'public');
+        // Handle image upload
+        if ($request->hasFile('gambar') && $request->file('gambar')->isValid()) {
+            $data['gambar'] = $request->file('gambar')->store('products', 'public');
         }
 
-        Product::create($validated);
+        Product::create($data);
 
         return redirect()->route('products.index')
-            ->with('success', "Produk {$validated['nama']} berhasil ditambahkan.");
+            ->with('success', "Produk {$data['nama']} berhasil ditambahkan.");
     }
 
     public function show(Product $product)
@@ -89,31 +83,34 @@ class ProductController extends Controller
         return view('admin.products.edit', compact('product', 'categories'));
     }
 
-    public function update(Request $request, Product $product)
+    public function update(UpdateProductRequest $request, Product $product)
     {
-        $validated = $request->validate([
-            'category_id'   => 'required|exists:categories,id',
-            'nama'          => 'required|string|max:150',
-            'deskripsi'     => 'nullable|string',
-            'merek'         => 'nullable|string|max:100',
-            'harga_beli'    => 'required|numeric|min:0',
-            'harga_jual'    => 'required|numeric|min:0',
-            'stok'          => 'required|integer|min:0',
-            'stok_minimum'  => 'required|integer|min:0',
-            'satuan'        => 'required|string|max:20',
-            'gambar'        => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-        ]);
+        $data = [
+            'category_id'  => $request->category_id,
+            'nama'         => $request->nama,
+            'deskripsi'    => $request->deskripsi,
+            'merek'        => $request->merek,
+            'harga_beli'   => $request->harga_beli,
+            'harga_jual'   => $request->harga_jual,
+            'stok'         => $request->stok,
+            'stok_minimum' => $request->stok_minimum,
+            'satuan'       => $request->satuan,
+            'is_active'    => $request->boolean('is_active', true),
+        ];
 
-        $validated['is_active'] = $request->boolean('is_active', true);
-
-        if ($request->hasFile('gambar')) {
+        // Handle image upload
+        if ($request->hasFile('gambar') && $request->file('gambar')->isValid()) {
+            // Delete old image
             if ($product->gambar) {
                 Storage::disk('public')->delete($product->gambar);
             }
-            $validated['gambar'] = $request->file('gambar')->store('products', 'public');
+            $data['gambar'] = $request->file('gambar')->store('products', 'public');
+        } elseif ($request->boolean('hapus_gambar') && $product->gambar) {
+            Storage::disk('public')->delete($product->gambar);
+            $data['gambar'] = null;
         }
 
-        $product->update($validated);
+        $product->update($data);
 
         return redirect()->route('products.index')
             ->with('success', 'Produk berhasil diperbarui.');
@@ -127,95 +124,5 @@ class ProductController extends Controller
         $product->delete();
         return redirect()->route('products.index')
             ->with('success', 'Produk berhasil dihapus.');
-    }
-
-    public function export()
-    {
-        return Excel::download(new ProductExport, 'products_' . now()->format('Y-m-d_H-i-s') . '.xlsx');
-    }
-
-    public function import(Request $request)
-    {
-        $request->validate([
-            'file' => 'required|mimes:xlsx,xls,csv|max:2048',
-        ]);
-
-        $file = $request->file('file');
-
-        $headerError = $this->validateImportHeaders($file, ProductImport::expectedHeadings());
-        if ($headerError) {
-            return redirect()->route('products.index')
-                ->with('error', $headerError);
-        }
-
-        $import = new ProductImport;
-
-        try {
-            DB::beginTransaction();
-
-            Excel::import($import, $file);
-
-            $errors = $import->getErrors();
-            if (!empty($errors)) {
-                DB::rollBack();
-
-                $message = 'Import gagal: data tidak valid pada beberapa baris. ';
-                $message .= implode(' | ', array_slice($errors, 0, 5));
-                if (count($errors) > 5) {
-                    $message .= ' (+' . (count($errors) - 5) . ' lainnya)';
-                }
-
-                return redirect()->route('products.index')
-                    ->with('error', $message);
-            }
-
-            DB::commit();
-
-            $successCount = $import->getSuccessCount();
-            $message = "Import selesai. {$successCount} data berhasil diimpor.";
-
-            return redirect()->route('products.index')
-                ->with('success', $message);
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            return redirect()->route('products.index')
-                ->with('error', 'Import gagal: ' . $e->getMessage());
-        }
-    }
-
-    private function validateImportHeaders($file, array $expectedHeaders): ?string
-    {
-        $rows = (new HeadingRowImport)->toArray($file);
-        $headers = $rows[0][0] ?? [];
-
-        if (!is_array($headers) || empty($headers)) {
-            return 'Format file tidak valid: tidak dapat membaca baris header.';
-        }
-
-        $normalize = fn ($value) => Str::of($value)
-            ->trim()
-            ->lower()
-            ->replaceMatches('/\s+/', '_')
-            ->replace('-', '_')
-            ->__toString();
-
-        $normalized = array_map($normalize, $headers);
-        $expectedNormalized = array_map($normalize, $expectedHeaders);
-
-        $missing = array_diff($expectedNormalized, $normalized);
-        $extra = array_diff($normalized, $expectedNormalized);
-
-        if (!empty($missing) || !empty($extra)) {
-            $msgParts = [];
-            if (!empty($missing)) {
-                $msgParts[] = 'Kolom hilang: ' . implode(', ', $missing);
-            }
-            if (!empty($extra)) {
-                $msgParts[] = 'Kolom tidak diharapkan: ' . implode(', ', $extra);
-            }
-            return 'Template file tidak sesuai. ' . implode(' ', $msgParts) . ' Pastikan menggunakan template import yang benar.';
-        }
-
-        return null;
     }
 }

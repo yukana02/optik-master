@@ -15,6 +15,10 @@
                 <input type="date" name="to" class="form-control form-control-sm" value="{{ $to }}">
             </div>
             <button class="btn btn-primary btn-sm"><i class="bi bi-search me-1"></i>Filter</button>
+            <a href="{{ request()->fullUrlWithQuery(['export'=>'excel']) }}"
+               class="btn btn-success btn-sm">
+                <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
+            </a>
         </form>
     </div>
 </div>

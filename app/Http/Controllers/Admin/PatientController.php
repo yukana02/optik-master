@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StorePatientRequest;
+use App\Http\Requests\Admin\UpdatePatientRequest;
 use App\Models\Patient;
 use App\Exports\PatientExport;
 use App\Imports\PatientImport;
@@ -37,18 +39,9 @@ class PatientController extends Controller
         return view('admin.patients.create');
     }
 
-    public function store(Request $request)
+    public function store(StorePatientRequest $request)
     {
-        $validated = $request->validate([
-            'nama'             => 'required|string|max:100',
-            'tanggal_lahir'    => 'nullable|date|before:today',
-            'jenis_kelamin'    => 'nullable|in:L,P',
-            'no_hp'            => 'nullable|string|max:20',
-            'no_bpjs'          => 'nullable|string',
-            'email'            => 'nullable|email|max:100',
-            'alamat'           => 'nullable|string',
-            'riwayat_penyakit' => 'nullable|string',
-        ]);
+        $validated = $request->validated();
 
         $validated['no_rm'] = Patient::generateNoRM();
 
@@ -74,18 +67,9 @@ class PatientController extends Controller
         return view('admin.patients.edit', compact('patient'));
     }
 
-    public function update(Request $request, Patient $patient)
+    public function update(UpdatePatientRequest $request, Patient $patient)
     {
-        $validated = $request->validate([
-            'nama'             => 'required|string|max:100',
-            'tanggal_lahir'    => 'nullable|date|before:today',
-            'jenis_kelamin'    => 'nullable|in:L,P',
-            'no_hp'            => 'nullable|string|max:20',
-            'no_bpjs'          => 'nullable|string',
-            'email'            => 'nullable|email|max:100',
-            'alamat'           => 'nullable|string',
-            'riwayat_penyakit' => 'nullable|string',
-        ]);
+        $validated = $request->validated();
 
         $patient->update($validated);
 
@@ -202,4 +186,13 @@ class PatientController extends Controller
 
         return response()->json($patients);
     }
+
+    // Cetak kartu pasien
+    public function printCard(Patient $patient)
+    {
+        $patient->load('latestRecord');
+        return view('admin.patients.card', compact('patient'));
+    }
 }
+
+    

@@ -15,11 +15,13 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'session_token',
     ];
 
     protected $hidden = [
         'password',
         'remember_token',
+        'session_token',
     ];
 
     protected function casts(): array
@@ -31,20 +33,10 @@ class User extends Authenticatable
     }
 
     // Helper cek role
-    public function isSuperAdmin(): bool
-    {
-        return $this->hasRole('super_admin');
-    }
-
-    public function isAdmin(): bool
-    {
-        return $this->hasRole('admin');
-    }
-
-    public function isKasir(): bool
-    {
-        return $this->hasRole('kasir');
-    }
+    public function isSuperAdmin(): bool { return $this->hasRole('super_admin'); }
+    public function isAdmin(): bool      { return $this->hasRole('admin'); }
+    public function isDokter(): bool     { return $this->hasRole('dokter'); }
+    public function isKasir(): bool      { return $this->hasRole('kasir'); }
 
     // Relasi
     public function medicalRecords()
@@ -55,5 +47,10 @@ class User extends Authenticatable
     public function transactions()
     {
         return $this->hasMany(Transaction::class);
+    }
+
+    public function stockMovements()
+    {
+        return $this->hasMany(StockMovement::class);
     }
 }

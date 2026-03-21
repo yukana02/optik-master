@@ -3,39 +3,52 @@
 namespace App\Exports;
 
 use App\Models\Patient;
+use Illuminate\Http\Request;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Concerns\WithColumnWidths;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class PatientExport implements FromCollection, WithHeadings
+class PatientExport implements FromCollection, WithHeadings, WithStyles, WithColumnWidths
 {
-    /**
-     * @return \Illuminate\Support\Collection
-     */
+    protected ?Request $request;
+
+    public function __construct(?Request $request = null)
+    {
+        $this->request = $request;
+    }
+
     public function collection()
     {
-        return Patient::all()->map(function ($patient) {
+        $query = Patient::query()
+            ->when($this->request?->filled('search'), function ($q) {
+                $q->where('nama', 'like', '%' . $this->request->search . '%');
+            })
+            ->orderBy('nama')
+            ->get();
+
+        return $query->map(function ($p) {
             return [
-                'no_rm' => $patient->no_rm,
-                'nama' => $patient->nama,
-                'tanggal_lahir' => $patient->tanggal_lahir?->format('Y-m-d'),
-                'jenis_kelamin' => $patient->jenis_kelamin,
-                'no_hp' => $patient->no_hp,
-                'no_bpjs' => $patient->no_bpjs,
-                'email' => $patient->email,
-                'alamat' => $patient->alamat,
-                'riwayat_penyakit' => $patient->riwayat_penyakit,
+                $p->no_rm,
+                $p->nama,
+                $p->tanggal_lahir?->format('Y-m-d') ?? '',
+                $p->jenis_kelamin ?? '',
+                $p->no_hp ?? '',
+                $p->no_bpjs ?? '',
+                $p->email ?? '',
+                $p->alamat ?? '',
+                $p->riwayat_penyakit ?? '',
+                $p->medicalRecords()->count(),
             ];
         });
     }
 
-    /**
-     * @return array
-     */
     public function headings(): array
     {
         return [
             'No. RM',
-            'Nama',
+            'Nama Pasien',
             'Tanggal Lahir',
             'Jenis Kelamin',
             'No. HP',
@@ -43,6 +56,28 @@ class PatientExport implements FromCollection, WithHeadings
             'Email',
             'Alamat',
             'Riwayat Penyakit',
+            'Jumlah Kunjungan',
+        ];
+    }
+
+    public function styles(Worksheet $sheet): array
+    {
+        return [
+            1 => [
+                'font'      => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+                'fill'      => ['fillType' => 'solid', 'startColor' => ['rgb' => '1E2A5E']],
+                'alignment' => ['horizontal' => 'center'],
+            ],
+        ];
+    }
+
+    public function columnWidths(): array
+    {
+        return [
+            'A' => 14, 'B' => 28, 'C' => 14,
+            'D' => 14, 'E' => 16, 'F' => 18,
+            'G' => 26, 'H' => 30, 'I' => 30,
+            'J' => 18,
         ];
     }
 }

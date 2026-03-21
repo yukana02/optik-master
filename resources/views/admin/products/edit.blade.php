@@ -94,10 +94,66 @@
     </div>
 </div>
 
+{{-- ══ FOTO PRODUK ══ --}}
 <div class="card mb-3">
-    <div class="card-header p-3"><i class="bi bi-image text-info me-2"></i>Foto Produk</div>
+    <div class="card-header p-3">
+        <i class="bi bi-image text-info me-2"></i>Foto Produk
+        <small class="text-muted fw-normal ms-1">(opsional)</small>
+    </div>
     <div class="card-body p-4">
-        <div class="row align-items-center g-3">
+        <div class="row align-items-start g-3">
+            {{-- Preview / Gambar saat ini --}}
+            <div class="col-auto">
+                <div class="text-center">
+                    <div id="img-preview-wrap"
+                         style="width:120px;height:120px;border:2px solid {{ $product->gambar ? '#0d6efd' : '#dee2e6' }};
+                                border-radius:12px;overflow:hidden;background:#f8f9fa;
+                                display:flex;align-items:center;justify-content:center;transition:.2s;">
+                        @if($product->gambar)
+                            <img id="img-preview"
+                                 src="{{ asset('storage/'.$product->gambar) }}"
+                                 alt="{{ $product->nama }}"
+                                 style="width:100%;height:100%;object-fit:cover;">
+                            <i class="bi bi-image text-muted" style="font-size:2.5rem;display:none" id="img-placeholder"></i>
+                        @else
+                            <i class="bi bi-image text-muted" style="font-size:2.5rem" id="img-placeholder"></i>
+                            <img id="img-preview" src="#" alt="Preview"
+                                 style="width:100%;height:100%;object-fit:cover;display:none;">
+                        @endif
+                    </div>
+                    <small class="text-muted d-block mt-1">
+                        {{ $product->gambar ? 'Foto saat ini' : 'Belum ada foto' }}
+                    </small>
+                </div>
+            </div>
+
+            {{-- Upload input --}}
+            <div class="col">
+                <label class="form-label fw-semibold">Ganti / Upload Foto Baru</label>
+                <input type="file" name="gambar" id="gambar"
+                       class="form-control @error('gambar') is-invalid @enderror"
+                       accept="image/jpeg,image/jpg,image/png,image/webp"
+                       onchange="previewImage(this)">
+                @error('gambar')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                <div class="form-text">Format: JPG, PNG, atau WEBP · Ukuran maks. 2 MB. Biarkan kosong jika tidak ingin mengubah foto.</div>
+
+                <div class="d-flex gap-2 mt-2">
+                    <button type="button" id="btn-hapus-pilihan"
+                            class="btn btn-sm btn-outline-secondary d-none"
+                            onclick="batalPilihan()">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>Batal Pilih
+                    </button>
+                    @if($product->gambar)
+                    <div class="form-check mt-1">
+                        <input class="form-check-input" type="checkbox" name="hapus_gambar"
+                               id="hapus_gambar" value="1">
+                        <label class="form-check-label text-danger small" for="hapus_gambar">
+                            Hapus foto ini
+                        </label>
+                    </div>
+                    @endif
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -112,4 +168,47 @@
 </div>
 </div>
 
+@push('scripts')
+<script>
+const originalSrc = '{{ $product->gambar ? asset("storage/".$product->gambar) : "" }}';
+
+function previewImage(input) {
+    const preview  = document.getElementById('img-preview');
+    const holder   = document.getElementById('img-placeholder');
+    const btnBatal = document.getElementById('btn-hapus-pilihan');
+    const wrap     = document.getElementById('img-preview-wrap');
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            preview.src           = e.target.result;
+            preview.style.display = 'block';
+            holder.style.display  = 'none';
+            wrap.style.border     = '2px solid #0d6efd';
+            btnBatal.classList.remove('d-none');
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function batalPilihan() {
+    const input    = document.getElementById('gambar');
+    const preview  = document.getElementById('img-preview');
+    const holder   = document.getElementById('img-placeholder');
+    const btnBatal = document.getElementById('btn-hapus-pilihan');
+    const wrap     = document.getElementById('img-preview-wrap');
+    input.value = '';
+    if (originalSrc) {
+        preview.src           = originalSrc;
+        preview.style.display = 'block';
+        holder.style.display  = 'none';
+        wrap.style.border     = '2px solid #0d6efd';
+    } else {
+        preview.style.display = 'none';
+        holder.style.display  = '';
+        wrap.style.border     = '2px dashed #dee2e6';
+    }
+    btnBatal.classList.add('d-none');
+}
+</script>
+@endpush
 @endsection

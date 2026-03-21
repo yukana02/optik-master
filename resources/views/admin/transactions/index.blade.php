@@ -34,7 +34,7 @@
                     <td>{!! $trx->patient->nama ?? '<span class="text-muted small">Umum</span>' !!}</td>
                     <td>{{ $trx->kasir->name ?? '-' }}</td>
                     <td>Rp {{ number_format($trx->total_bayar,0,',','.') }}</td>
-                    <td>{{ $trx->potongan_bpjs > 0 ? 'Rp '.number_format($trx->potongan_bpjs,0,',','.') : '-' }}</td>
+                    <td>{{ $trx->subsidi_bpjs > 0 ? 'Rp '.number_format($trx->subsidi_bpjs,0,',','.') : '-' }}</td>
                     <td><span class="badge bg-light text-dark border">{{ ucfirst($trx->metode_bayar) }}</span></td>
                     <td><span class="badge badge-{{ $trx->status }}">{{ ucfirst($trx->status) }}</span></td>
                     <td class="text-muted small">{{ $trx->created_at->format('d M Y H:i') }}</td>

@@ -12,18 +12,36 @@
                        placeholder="Cari nama / No. RM..." value="{{ request('search') }}" style="width:220px">
                 <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-search"></i></button>
             </form>
+
+            {{-- Import / Export --}}
+            <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-arrow-down-up me-1"></i>Import/Export
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                        <a class="dropdown-item" href="{{ route('import.index') }}">
+                            <i class="bi bi-upload text-primary me-2"></i>Import Pasien (Excel/CSV)
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="{{ route('export.pasien') }}{{ request('search') ? '?search='.request('search') : '' }}">
+                            <i class="bi bi-file-earmark-excel text-success me-2"></i>Export Pasien (.xlsx)
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item" href="{{ route('import.template', 'pasien') }}">
+                            <i class="bi bi-file-earmark-spreadsheet text-secondary me-2"></i>Download Template
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
             @can('patient.create')
             <a href="{{ route('patients.create') }}" class="btn btn-sm btn-primary">
                 <i class="bi bi-plus-lg me-1"></i>Tambah Pasien
             </a>
-            @endcan
-            @can('patient.view')
-            <a href="{{ route('patients.export') }}" class="btn btn-sm btn-success">
-                <i class="bi bi-download me-1"></i>Export Excel
-            </a>
-            <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#importModal">
-                <i class="bi bi-upload me-1"></i>Import Excel
-            </button>
             @endcan
         </div>
     </div>
@@ -36,7 +54,6 @@
                     <th>Nama</th>
                     <th>J/K</th>
                     <th>No. HP</th>
-                    <th>No. BPJS</th>
                     <th>Kunjungan Terakhir</th>
                     <th>Aksi</th>
                 </tr>
@@ -54,14 +71,13 @@
                         <div class="text-muted" style="font-size:.75rem">{{ $p->umur }} tahun</div>
                         @endif
                     </td>
-                    <td>{{ $p->jenis_kelamin == 'L' ? 'Laki-laki' : ($p->jenis_kelamin == 'P' ? 'Perempuan' : '-') }}</td>
+                    <td>{{ $p->jenis_kelamin == 'L' ? 'L' : ($p->jenis_kelamin == 'P' ? 'P' : '-') }}</td>
                     <td>{{ $p->no_hp ?? '-' }}</td>
-                    <td>{{ $p->no_bpjs ?? '-' }}</td>
                     <td>
                         @if($p->latestRecord)
-                            {{ $p->latestRecord->tanggal_kunjungan->format('d M Y') }}
+                        {{ $p->latestRecord->tanggal_kunjungan->format('d M Y') }}
                         @else
-                            <span class="text-muted">Belum ada</span>
+                        <span class="text-muted">Belum ada</span>
                         @endif
                     </td>
                     <td>
@@ -76,7 +92,7 @@
                             @endcan
                             @can('patient.delete')
                             <form method="POST" action="{{ route('patients.destroy', $p) }}"
-                                  onsubmit="return confirm('Hapus pasien {{ $p->nama }}?')">
+                                  data-confirm="Hapus pasien {{ $p->nama }}?">
                                 @csrf @method('DELETE')
                                 <button class="btn btn-xs btn-outline-danger" title="Hapus">
                                     <i class="bi bi-trash"></i>
@@ -88,7 +104,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="8" class="text-center text-muted py-5">
+                    <td colspan="7" class="text-center text-muted py-5">
                         <i class="bi bi-people fs-1 d-block mb-2 opacity-25"></i>
                         Belum ada data pasien
                     </td>
@@ -98,41 +114,11 @@
         </table>
     </div>
     @if($patients->hasPages())
-    <div class="card-footer">
-        {{ $patients->links() }}
-    </div>
+    <div class="card-footer">{{ $patients->withQueryString()->links() }}</div>
     @endif
 </div>
+@endsection
 
 @push('styles')
 <style>.btn-xs { padding: 3px 8px; font-size: .75rem; }</style>
 @endpush
-
-<!-- Modal Import -->
-<div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="importModalLabel">Import Data Pasien</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form action="{{ route('patients.import') }}" method="POST" enctype="multipart/form-data">
-                @csrf
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="file" class="form-label">Pilih File Excel (.xlsx, .xls, .csv)</label>
-                        <input type="file" class="form-control" id="file" name="file" accept=".xlsx,.xls,.csv" required>
-                        <div class="form-text">
-                        <a href="/template.xlsx">download template</a>    
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary">Import</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-@endsection

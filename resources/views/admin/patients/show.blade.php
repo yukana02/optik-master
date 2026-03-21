@@ -50,7 +50,13 @@
                 @endif
             </table>
         </div>
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2 flex-wrap">
+            @can('patient.view')
+            <a href="{{ route('patients.card', $patient) }}" target="_blank"
+               class="btn btn-outline-secondary btn-sm flex-fill">
+                <i class="bi bi-credit-card me-1"></i>Cetak Kartu
+            </a>
+            @endcan
             @can('patient.edit')
             <a href="{{ route('patients.edit', $patient) }}" class="btn btn-outline-warning btn-sm flex-fill">
                 <i class="bi bi-pencil me-1"></i>Edit

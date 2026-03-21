@@ -11,9 +11,17 @@ class Transaction extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'no_transaksi', 'patient_id', 'user_id', 'medical_record_id',
-        'total_harga', 'diskon_persen', 'diskon_nominal', 'potongan_bpjs', 'total_bayar',
+        'no_transaksi', 'patient_id', 'tipe_pasien', 'no_bpjs', 'subsidi_bpjs',
+        'user_id', 'medical_record_id',
+        'total_harga', 'diskon_persen', 'diskon_nominal', 'total_bayar',
         'bayar', 'kembalian', 'metode_bayar', 'status', 'catatan',
+    ];
+
+    protected $casts = [
+        'subsidi_bpjs'  => 'decimal:2',
+        'total_harga'   => 'decimal:2',
+        'total_bayar'   => 'decimal:2',
+        'diskon_nominal'=> 'decimal:2',
     ];
 
     // Auto-generate nomor transaksi
@@ -44,5 +52,10 @@ class Transaction extends Model
     public function items()
     {
         return $this->hasMany(TransactionItem::class);
+    }
+
+    public function stockMovements()
+    {
+        return $this->morphMany(StockMovement::class, 'referensi');
     }
 }

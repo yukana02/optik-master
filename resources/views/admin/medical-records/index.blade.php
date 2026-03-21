@@ -69,7 +69,7 @@
                             @endcan
                             @can('medical_record.delete')
                             <form method="POST" action="{{ route('medical-records.destroy', $rm) }}"
-                                  onsubmit="return confirm('Hapus rekam medis ini?')">
+                                  data-confirm="Hapus rekam medis ini?">
                                 @csrf @method('DELETE')
                                 <button class="btn btn-xs btn-outline-danger"><i class="bi bi-trash"></i></button>
                             </form>

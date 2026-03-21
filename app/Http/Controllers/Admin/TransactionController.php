@@ -3,7 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\{Transaction, TransactionItem, Patient, Product, MedicalRecord};
+use App\Http\Requests\Admin\StoreTransactionRequest;
+use App\Models\{Transaction, TransactionItem, Patient, Product, MedicalRecord, StockMovement, ActivityLog};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -21,16 +22,9 @@ class TransactionController extends Controller
             });
         }
 
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        if ($request->filled('from')) {
-            $query->whereDate('created_at', '>=', $request->from);
-        }
-        if ($request->filled('to')) {
-            $query->whereDate('created_at', '<=', $request->to);
-        }
+        if ($request->filled('status'))  { $query->where('status', $request->status); }
+        if ($request->filled('from'))    { $query->whereDate('created_at', '>=', $request->from); }
+        if ($request->filled('to'))      { $query->whereDate('created_at', '<=', $request->to); }
 
         $transactions = $query->latest()->paginate(15)->withQueryString();
         return view('admin.transactions.index', compact('transactions'));
@@ -38,49 +32,40 @@ class TransactionController extends Controller
 
     public function create()
     {
+        $categories = \App\Models\Category::where('is_active', true)
+            ->withCount(['activeProducts' => fn($q) => $q->where('stok', '>', 0)])
+            ->having('active_products_count', '>', 0)
+            ->get();
+
         $products = Product::where('is_active', true)
             ->where('stok', '>', 0)
             ->with('category')
             ->get();
-        $patients = Patient::orderBy('nama')->get(['id', 'no_rm', 'nama', 'no_bpjs']);
-        $medRecs  = collect();
 
-        return view('admin.transactions.create', compact('products', 'patients', 'medRecs'));
+        $patients = Patient::orderBy('nama')->get(['id', 'no_rm', 'nama']);
+
+        return view('admin.transactions.create', compact('products', 'categories', 'patients'));
     }
 
-    public function store(Request $request)
+    public function store(StoreTransactionRequest $request)
     {
-        // Normalize string to numeric input
-        $request->merge([
-            'bayar'            => (int) str_replace('.', '', $request->bayar),
-            'diskon_nominal'   => (int) str_replace('.', '', $request->diskon_nominal),
-            'potongan_bpjs'    => (int) str_replace('.', '', $request->potongan_bpjs),
-        ]);
-
-        $request->validate([
-            'items'                  => 'required|array|min:1',
-            'items.*.product_id'     => 'required|exists:products,id',
-            'items.*.qty'            => 'required|integer|min:1',
-            'items.*.harga_satuan'   => 'required|numeric|min:0',
-            'metode_bayar'           => 'required|in:tunai,transfer,qris,debit,kredit',
-            'bayar'                  => 'required|numeric|min:0',
-            'diskon_persen'          => 'nullable|numeric|min:0|max:100',
-            'diskon_nominal'         => 'nullable|numeric|min:0',
-            'potongan_bpjs'          => 'nullable|numeric|min:0',
-        ]);
-
-        DB::transaction(function () use ($request) {
-            $totalHarga = 0;
-            $itemsData  = [];
+        $newTransaction = null;
+        DB::transaction(function () use ($request, &$newTransaction) {
+            $totalHarga     = 0;
+            $itemsData      = [];
+            $productsToMove = [];
 
             foreach ($request->items as $item) {
-                $product = Product::lockForUpdate()->findOrFail($item['product_id']);
+                $product    = Product::lockForUpdate()->findOrFail($item['product_id']);
+                $diskonItem = (float) ($item['diskon'] ?? 0);
 
                 if ($product->stok < $item['qty']) {
-                    throw new \Exception("Stok produk '{$product->nama}' tidak mencukupi. Stok saat ini: {$product->stok}");
+                    throw new \Exception(
+                        "Stok produk '{$product->nama}' tidak mencukupi. Stok saat ini: {$product->stok}"
+                    );
                 }
 
-                $subtotal    = $item['harga_satuan'] * $item['qty'];
+                $subtotal    = ($item['harga_satuan'] * $item['qty']) - $diskonItem;
                 $totalHarga += $subtotal;
 
                 $itemsData[] = [
@@ -88,39 +73,40 @@ class TransactionController extends Controller
                     'nama_produk'  => $product->nama,
                     'qty'          => $item['qty'],
                     'harga_satuan' => $item['harga_satuan'],
-                    'diskon'       => $item['diskon'] ?? 0,
-                    'subtotal'     => $subtotal - ($item['diskon'] ?? 0),
+                    'diskon'       => $diskonItem,
+                    'subtotal'     => $subtotal,
                 ];
 
-                // Kurangi stok
+                $productsToMove[] = ['product' => $product, 'qty' => $item['qty']];
                 $product->decrement('stok', $item['qty']);
             }
 
-            // Hitung diskon
-            $diskonPersen  = $request->diskon_persen  ?? 0;
-            $diskonNominal = $request->diskon_nominal ?? 0;
+            $diskonPersen  = (float) ($request->diskon_persen  ?? 0);
+            $diskonNominal = (float) ($request->diskon_nominal ?? 0);
             if ($diskonPersen > 0) {
                 $diskonNominal = round($totalHarga * ($diskonPersen / 100));
             }
 
-            $potonganBpjs = $request->potongan_bpjs ?? 0;
-            $totalBayar   = $totalHarga - $diskonNominal - $potonganBpjs;
-            $kembalian    = $request->bayar - $totalBayar;
+            $tipePasien  = $request->tipe_pasien ?? 'umum';
+            $subsidiBpjs = ($tipePasien === 'bpjs') ? (float) ($request->subsidi_bpjs ?? 0) : 0;
+            $totalBayar  = max(0, $totalHarga - $diskonNominal - $subsidiBpjs);
+            $kembalian   = $request->bayar - $totalBayar;
 
-            // Double Protection
-            if ($request->bayar < $totalBayar) {
-                throw new \Exception('Jumlah bayar kurang dari total yang harus dibayar.');
+            if ($request->metode_bayar === 'tunai' && $request->bayar < $totalBayar) {
+                throw new \Exception('Jumlah uang bayar kurang dari total yang harus dibayar.');
             }
 
             $transaction = Transaction::create([
                 'no_transaksi'      => Transaction::generateNomor(),
                 'patient_id'        => $request->patient_id ?: null,
+                'tipe_pasien'       => $tipePasien,
+                'no_bpjs'           => ($tipePasien === 'bpjs') ? $request->no_bpjs : null,
+                'subsidi_bpjs'      => $subsidiBpjs,
                 'user_id'           => auth()->id(),
                 'medical_record_id' => $request->medical_record_id ?: null,
                 'total_harga'       => $totalHarga,
                 'diskon_persen'     => $diskonPersen,
                 'diskon_nominal'    => $diskonNominal,
-                'potongan_bpjs'     => $potonganBpjs,
                 'total_bayar'       => $totalBayar,
                 'bayar'             => $request->bayar,
                 'kembalian'         => max(0, $kembalian),
@@ -130,9 +116,22 @@ class TransactionController extends Controller
             ]);
 
             $transaction->items()->createMany($itemsData);
+            $newTransaction = $transaction;
+
+            foreach ($productsToMove as $move) {
+                StockMovement::catat(
+                    $move['product'],
+                    'keluar',
+                    $move['qty'],
+                    "Penjualan #{$transaction->no_transaksi}",
+                    $transaction
+                );
+            }
+
+            ActivityLog::catat('transaksi', "Transaksi baru #{$transaction->no_transaksi}", $transaction->id);
         });
 
-        return redirect()->route('transactions.index')
+        return redirect()->route('transactions.invoice', $newTransaction)
             ->with('success', 'Transaksi berhasil disimpan.');
     }
 
@@ -142,6 +141,12 @@ class TransactionController extends Controller
         return view('admin.transactions.show', compact('transaction'));
     }
 
+    public function invoice(Transaction $transaction)
+    {
+        $transaction->load(['patient', 'kasir', 'medicalRecord', 'items.product']);
+        return view('admin.transactions.invoice', compact('transaction'));
+    }
+
     public function cancel(Transaction $transaction)
     {
         if ($transaction->status === 'batal') {
@@ -149,20 +154,26 @@ class TransactionController extends Controller
         }
 
         DB::transaction(function () use ($transaction) {
-            // Kembalikan stok
             foreach ($transaction->items as $item) {
                 if ($item->product) {
                     $item->product->increment('stok', $item->qty);
+                    StockMovement::catat(
+                        $item->product,
+                        'retur',
+                        $item->qty,
+                        "Pembatalan transaksi #{$transaction->no_transaksi}",
+                        $transaction
+                    );
                 }
             }
             $transaction->update(['status' => 'batal']);
+            ActivityLog::catat('transaksi', "Transaksi dibatalkan #{$transaction->no_transaksi}", $transaction->id);
         });
 
         return redirect()->route('transactions.index')
             ->with('success', 'Transaksi berhasil dibatalkan dan stok telah dikembalikan.');
     }
 
-    // AJAX — cari produk di POS
     public function searchProduct(Request $request)
     {
         $products = Product::where('is_active', true)
@@ -179,25 +190,20 @@ class TransactionController extends Controller
         return response()->json($products);
     }
 
-    // AJAX — ambil rekam medis berdasarkan pasien
     public function getMedicalRecords(Request $request)
     {
-        if (!$request->patient_id) {
-            return response()->json([]);
-        }
+        if (!$request->patient_id) return response()->json([]);
 
         $records = MedicalRecord::where('patient_id', $request->patient_id)
             ->latest()
             ->take(10)
             ->get(['id', 'tanggal_kunjungan', 'od_sph', 'os_sph'])
-            ->map(function ($r) {
-                return [
-                    'id'                => $r->id,
-                    'tanggal_kunjungan' => $r->tanggal_kunjungan->format('d M Y'),
-                    'od_sph'            => $r->od_sph ?? '-',
-                    'os_sph'            => $r->os_sph ?? '-',
-                ];
-            });
+            ->map(fn($r) => [
+                'id'                => $r->id,
+                'tanggal_kunjungan' => $r->tanggal_kunjungan->format('d M Y'),
+                'od_sph'            => $r->od_sph ?? '-',
+                'os_sph'            => $r->os_sph ?? '-',
+            ]);
 
         return response()->json($records);
     }
