@@ -29,14 +29,14 @@
         </div>
         <hr>
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-12 col-md-6">
                 <table class="table table-sm table-borderless mb-0">
                     <tr><td class="text-muted ps-0" style="width:120px">Dokter</td><td>: {{ $medicalRecord->dokter->name ?? '-' }}</td></tr>
                     <tr><td class="text-muted ps-0">Keluhan</td><td>: {{ $medicalRecord->keluhan ?? '-' }}</td></tr>
                     <tr><td class="text-muted ps-0">Jenis Lensa</td><td>: {{ $medicalRecord->jenis_lensa ?? '-' }}</td></tr>
                 </table>
             </div>
-            <div class="col-md-6">
+            <div class="col-12 col-md-6">
                 <table class="table table-sm table-borderless mb-0">
                     <tr><td class="text-muted ps-0" style="width:140px">Rekomendasi Frame</td><td>: {{ $medicalRecord->rekomendasi_frame ?? '-' }}</td></tr>
                     <tr><td class="text-muted ps-0">PD Total</td><td>: {{ $medicalRecord->pd_total ?? '-' }}</td></tr>

@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="row g-3">
-    <div class="col-md-4">
+    <div class="col-12 col-md-4">
         <div class="card p-3 text-center mb-3">
           
             <span class="badge bg-secondary mb-1">{{ $product->kode_produk }}</span>
@@ -28,7 +28,7 @@
         </div>
     </div>
 
-    <div class="col-md-8">
+    <div class="col-12 col-md-8">
         <div class="card mb-3">
             <div class="card-header p-3"><i class="bi bi-info-circle text-primary me-2"></i>Informasi Produk</div>
             <div class="card-body p-3">

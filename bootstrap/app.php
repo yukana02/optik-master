@@ -15,10 +15,16 @@ return Application::configure(basePath: dirname(__DIR__))
             'role'               => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission'         => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
+            // Middleware baru
+            'concurrent.login'   => \App\Http\Middleware\CheckConcurrentLogin::class,
+            'track.activity'     => \App\Http\Middleware\TrackActivity::class,
         ]);
-    
-        // Tambahkan ini!
-        $middleware->trustHosts(at: ['127.0.0.1']);
+
+        // Terapkan middleware keamanan ke semua request web yang sudah login
+        $middleware->appendToGroup('web', [
+            \App\Http\Middleware\CheckConcurrentLogin::class,
+            \App\Http\Middleware\TrackActivity::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

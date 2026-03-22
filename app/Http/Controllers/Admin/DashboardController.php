@@ -10,8 +10,6 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $user = auth()->user();
-
         // Stat cards
         $totalPasien   = Patient::count();
         $totalProduk   = Product::where('is_active', true)->count();
@@ -26,14 +24,20 @@ class DashboardController extends Controller
             ->with('category')
             ->get();
 
-        // Grafik omzet 7 hari
+        // Grafik omzet 7 hari — 1 query, bukan 7 query terpisah
+        $startDate = now()->subDays(6)->startOfDay();
+        $omzetRaw  = Transaction::where('status', 'lunas')
+            ->where('created_at', '>=', $startDate)
+            ->selectRaw('DATE(created_at) as tgl, SUM(total_bayar) as total')
+            ->groupBy('tgl')
+            ->pluck('total', 'tgl');
+
         $grafikOmzet = collect();
         for ($i = 6; $i >= 0; $i--) {
-            $tgl = now()->subDays($i)->format('Y-m-d');
-            $total = Transaction::whereDate('created_at', $tgl)
-                ->where('status', 'lunas')
-                ->sum('total_bayar');
-            $grafikOmzet->put(now()->subDays($i)->format('D'), $total);
+            $date  = now()->subDays($i);
+            $key   = $date->format('D');
+            $dateStr = $date->format('Y-m-d');
+            $grafikOmzet->put($key, $omzetRaw->get($dateStr, 0));
         }
 
         // Transaksi terbaru
