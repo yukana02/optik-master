@@ -20,11 +20,11 @@
                        value="{{ old('nama', $supplier->nama) }}" required>
                 @error('nama')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
-            <div class="col-md-6">
+            <div class="col-12 col-md-6">
                 <label class="form-label fw-semibold">Kontak Person</label>
                 <input type="text" name="kontak_person" class="form-control" value="{{ old('kontak_person', $supplier->kontak_person) }}">
             </div>
-            <div class="col-md-6">
+            <div class="col-12 col-md-6">
                 <label class="form-label fw-semibold">Telepon</label>
                 <input type="text" name="telepon" class="form-control" value="{{ old('telepon', $supplier->telepon) }}">
             </div>

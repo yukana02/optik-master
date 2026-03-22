@@ -4,7 +4,7 @@
 @section('page-title','Tambah User Baru')
 @section('content')
 <div class="row justify-content-center">
-<div class="col-md-6">
+<div class="col-12 col-md-6">
 <div class="card">
     <div class="card-header p-3"><i class="bi bi-person-plus text-primary me-2"></i>Form User Baru</div>
     <div class="card-body p-4">

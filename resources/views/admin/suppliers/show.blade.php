@@ -3,7 +3,7 @@
 @section('page-title', 'Detail Supplier')
 @section('content')
 <div class="row g-3">
-<div class="col-lg-4">
+<div class="col-12 col-lg-4">
 <div class="card h-auto">
     <div class="card-header p-3">
         <i class="bi bi-truck text-primary me-2"></i>Profil Supplier
@@ -33,7 +33,7 @@
     </div>
 </div>
 </div>
-<div class="col-lg-8">
+<div class="col-12 col-lg-8">
 <div class="card">
     <div class="card-header p-3 d-flex justify-content-between align-items-center">
         <span><i class="bi bi-file-earmark-text text-info me-2"></i>Riwayat Purchase Order</span>

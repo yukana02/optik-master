@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="row justify-content-center">
-<div class="col-xl-9">
+<div class="col-12 col-xl-9">
 <form method="POST" action="{{ route('products.update', $product) }}" enctype="multipart/form-data">
 @csrf @method('PUT')
 
@@ -15,17 +15,17 @@
     </div>
     <div class="card-body p-4">
         <div class="row g-3">
-            <div class="col-md-8">
+            <div class="col-12 col-md-8">
                 <label class="form-label fw-semibold">Nama Produk <span class="text-danger">*</span></label>
                 <input type="text" name="nama" class="form-control @error('nama') is-invalid @enderror"
                        value="{{ old('nama', $product->nama) }}" required>
                 @error('nama')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
-            <div class="col-md-4">
+            <div class="col-12 col-md-4">
                 <label class="form-label fw-semibold">Merek</label>
                 <input type="text" name="merek" class="form-control" value="{{ old('merek', $product->merek) }}">
             </div>
-            <div class="col-md-6">
+            <div class="col-12 col-md-6">
                 <label class="form-label fw-semibold">Kategori <span class="text-danger">*</span></label>
                 <select name="category_id" class="form-select" required>
                     @foreach($categories as $cat)
@@ -36,7 +36,7 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-3">
+            <div class="col-12 col-md-3">
                 <label class="form-label fw-semibold">Satuan</label>
                 <select name="satuan" class="form-select">
                     @foreach(['pcs','pasang','box','lusin'] as $s)
@@ -44,7 +44,7 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-3">
+            <div class="col-12 col-md-3">
                 <label class="form-label fw-semibold">Status</label>
                 <div class="form-check form-switch mt-2">
                     <input class="form-check-input" type="checkbox" name="is_active" id="is_active"
@@ -64,7 +64,7 @@
     <div class="card-header p-3"><i class="bi bi-currency-dollar text-success me-2"></i>Harga & Stok</div>
     <div class="card-body p-4">
         <div class="row g-3">
-            <div class="col-md-3">
+            <div class="col-12 col-md-3">
                 <label class="form-label fw-semibold">Harga Beli <span class="text-danger">*</span></label>
                 <div class="input-group">
                     <span class="input-group-text">Rp</span>
@@ -72,7 +72,7 @@
                            value="{{ old('harga_beli', $product->harga_beli) }}" min="0" required>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-12 col-md-3">
                 <label class="form-label fw-semibold">Harga Jual <span class="text-danger">*</span></label>
                 <div class="input-group">
                     <span class="input-group-text">Rp</span>
@@ -80,12 +80,12 @@
                            value="{{ old('harga_jual', $product->harga_jual) }}" min="0" required>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-12 col-md-3">
                 <label class="form-label fw-semibold">Stok Saat Ini <span class="text-danger">*</span></label>
                 <input type="number" name="stok" class="form-control"
                        value="{{ old('stok', $product->stok) }}" min="0" required>
             </div>
-            <div class="col-md-3">
+            <div class="col-12 col-md-3">
                 <label class="form-label fw-semibold">Minimum Stok</label>
                 <input type="number" name="stok_minimum" class="form-control"
                        value="{{ old('stok_minimum', $product->stok_minimum) }}" min="0">

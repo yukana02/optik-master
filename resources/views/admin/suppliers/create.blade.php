@@ -16,11 +16,11 @@
                        value="{{ old('nama') }}" placeholder="PT. Contoh Supplier" required>
                 @error('nama')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
-            <div class="col-md-6">
+            <div class="col-12 col-md-6">
                 <label class="form-label fw-semibold">Kontak Person</label>
                 <input type="text" name="kontak_person" class="form-control" value="{{ old('kontak_person') }}" placeholder="Nama PIC">
             </div>
-            <div class="col-md-6">
+            <div class="col-12 col-md-6">
                 <label class="form-label fw-semibold">Telepon</label>
                 <input type="text" name="telepon" class="form-control" value="{{ old('telepon') }}" placeholder="08xx-xxxx-xxxx">
             </div>

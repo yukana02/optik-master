@@ -6,7 +6,7 @@
 <div class="row g-3">
     {{-- Form Tambah --}}
     @can('category.create')
-    <div class="col-md-4">
+    <div class="col-12 col-md-4">
         <div class="card p-3">
             <div class="card-header px-0 pt-0 pb-3 mb-3">
                 <i class="bi bi-plus-circle text-primary me-2"></i>Tambah Kategori
@@ -33,7 +33,7 @@
     @endcan
 
     {{-- Daftar Kategori --}}
-    <div class="{{ auth()->user()->can('category.create') ? 'col-md-8' : 'col-12' }}">
+    <div class="{{ auth()->user()->can('category.create') ? 'col-12 col-md-8' : 'col-12' }}">
         <div class="card">
             <div class="card-header p-3">
                 <i class="bi bi-tags text-primary me-2"></i>Daftar Kategori
@@ -137,9 +137,6 @@
     </div>
 </div>
 
-@push('styles')
-<style>.btn-xs { padding: 3px 8px; font-size: .75rem; }</style>
-@endpush
 
 @push('scripts')
 <script>

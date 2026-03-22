@@ -27,14 +27,7 @@ class PurchaseOrderController extends Controller
     {
         $suppliers = Supplier::where('is_active', true)->get();
         $products  = Product::where('is_active', true)->with('category')->get();
-        $products2 = Product::select('id', 'kode_produk', 'nama', 'harga_beli')->get()
-        ->map(fn($p) => [
-            'id'         => $p->id,
-            'kode'       => $p->kode_produk,
-            'nama'       => $p->nama,
-            'harga_beli' => $p->harga_beli,
-        ]);
-        return view('admin.purchase-orders.create', compact('suppliers', 'products', 'products2'));
+        return view('admin.purchase-orders.create', compact('suppliers', 'products'));
     }
 
     public function store(Request $request)

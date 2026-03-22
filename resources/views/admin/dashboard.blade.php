@@ -73,7 +73,7 @@
 
 <div class="row g-3 mb-3">
     {{-- Grafik Omzet --}}
-    <div class="col-md-8">
+    <div class="col-12 col-md-8">
         <div class="card p-3 h-100">
             <div class="card-header px-0 pt-0 mb-3">
                 <i class="bi bi-bar-chart-fill text-primary me-2"></i>Omzet 7 Hari Terakhir
@@ -95,7 +95,7 @@
     </div>
 
     {{-- Stok Menipis --}}
-    <div class="col-md-4">
+    <div class="col-12 col-md-4">
         <div class="card p-3 h-100">
             <div class="card-header px-0 pt-0 mb-3">
                 <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Stok Menipis
@@ -122,7 +122,7 @@
 
 <div class="row g-3">
     {{-- Transaksi Terbaru --}}
-    <div class="col-md-8">
+    <div class="col-12 col-md-8">
         <div class="card">
             <div class="card-header p-3 d-flex justify-content-between align-items-center">
                 <div><i class="bi bi-clock-history text-primary me-2"></i>Transaksi Terbaru</div>
@@ -164,7 +164,7 @@
     </div>
 
     {{-- Top Produk --}}
-    <div class="col-md-4">
+    <div class="col-12 col-md-4">
         <div class="card p-3">
             <div class="card-header px-0 pt-0 mb-3">
                 <i class="bi bi-trophy-fill text-warning me-2"></i>Top Produk Bulan Ini

@@ -16,7 +16,7 @@
 
 @section('content')
 <div class="row justify-content-center">
-<div class="col-md-8 col-lg-6">
+<div class="col-12 col-md-8 col-lg-6">
 
 <div class="card mb-3" id="struk">
     <div class="card-body p-4">
@@ -85,6 +85,7 @@
         </div>
 
         {{-- Items --}}
+        <div class="table-responsive">
         <table class="table table-sm table-bordered mb-3">
             <thead class="table-light">
                 <tr>
@@ -105,6 +106,7 @@
                 @endforeach
             </tbody>
         </table>
+        </div>
 
         {{-- Totals --}}
         <table class="table table-sm table-borderless ms-auto" style="max-width:320px;font-size:.9rem">
@@ -152,6 +154,9 @@
 
 {{-- Action buttons --}}
 <div class="d-flex flex-wrap gap-2 justify-content-center no-print">
+    <a href="{{ route('transactions.invoice', $transaction) }}" target="_blank" class="btn btn-outline-primary">
+        <i class="bi bi-file-earmark-text me-1"></i>Cetak Invoice
+    </a>
     <button onclick="window.print()" class="btn btn-primary">
         <i class="bi bi-printer me-1"></i>Cetak Struk
     </button>
@@ -175,20 +180,4 @@
 </div>
 </div>
 </div>
-@push('scripts')
-<script>
-// Invoice button injection - add to action area
-document.addEventListener('DOMContentLoaded', function() {
-    var printBtns = document.querySelectorAll('.no-print');
-    if (printBtns.length > 0) {
-        var btn = document.createElement('a');
-        btn.href = "{{ route('transactions.invoice', $transaction) }}";
-        btn.target = "_blank";
-        btn.className = "btn btn-primary";
-        btn.innerHTML = '<i class="bi bi-printer"></i> Cetak Invoice';
-        printBtns[0].prepend(btn);
-    }
-});
-</script>
-@endpush
 @endsection

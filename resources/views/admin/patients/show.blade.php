@@ -5,7 +5,7 @@
 @section('content')
 <div class="row g-3">
     {{-- Info Pasien --}}
-    <div class="col-md-4">
+    <div class="col-12 col-md-4">
         <div class="card p-3 mb-3">
             <div class="d-flex align-items-center gap-3 mb-3">
                 <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center"
@@ -70,7 +70,7 @@
         </div>
     </div>
 
-    <div class="col-md-8">
+    <div class="col-12 col-md-8">
         {{-- Rekam Medis / Histori Kunjungan --}}
         <div class="card mb-3">
             <div class="card-header p-3">
@@ -168,7 +168,4 @@
     </div>
 </div>
 
-@push('styles')
-<style>.btn-xs{padding:3px 8px;font-size:.75rem;}</style>
-@endpush
 @endsection

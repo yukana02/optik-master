@@ -36,14 +36,13 @@
                 <a href="{{ route('reports.penjualan') }}" class="btn btn-outline-secondary btn-sm">Reset</a>
             </div>
             @endif
-            <div class="col-auto ms-auto d-flex gap-2">
-                {{-- [3][4] Satu tombol Export Excel, satu tombol Cetak --}}
+            <div class="col-12 col-md-auto ms-md-auto d-flex gap-2">
                 <a href="{{ request()->fullUrlWithQuery(['export'=>'excel']) }}"
-                   class="btn btn-success btn-sm">
+                   class="btn btn-success btn-sm flex-fill flex-md-grow-0">
                     <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
                 </a>
                 <a href="{{ route('reports.penjualan.print') }}?{{ http_build_query(request()->except('export')) }}"
-                   target="_blank" class="btn btn-outline-secondary btn-sm">
+                   target="_blank" class="btn btn-outline-secondary btn-sm flex-fill flex-md-grow-0">
                     <i class="bi bi-printer me-1"></i>Cetak
                 </a>
             </div>

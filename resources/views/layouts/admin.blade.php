@@ -40,14 +40,16 @@
             text-transform: uppercase; color: rgba(255,255,255,.4);
         }
         .sidebar .nav-link {
-            color: rgba(255,255,255,.75); padding: 8px 20px;
+            color: rgba(255,255,255,.75); padding: 10px 20px;
             display: flex; align-items: center; gap: 10px;
             border-radius: 8px; margin: 2px 10px; font-size: .85rem;
             transition: background .15s, color .15s;
+            /* Pastikan tap area cukup besar di mobile */
+            min-height: 44px;
         }
-        .sidebar .nav-link:hover { background: var(--sidebar-hover); color: #fff; }
+        .sidebar .nav-link:hover  { background: var(--sidebar-hover); color: #fff; }
         .sidebar .nav-link.active { background: var(--sidebar-active); color: #fff; font-weight: 500; }
-        .sidebar .nav-link .bi { font-size: 1rem; }
+        .sidebar .nav-link .bi    { font-size: 1rem; flex-shrink: 0; }
         .sidebar-footer {
             margin-top: auto; padding: 16px;
             border-top: 1px solid rgba(255,255,255,.1); flex-shrink: 0;
@@ -56,11 +58,11 @@
         /* ── Sidebar overlay (mobile) ── */
         .sidebar-overlay {
             display: none; position: fixed; inset: 0;
-            background: rgba(0,0,0,.45); z-index: 1035;
+            background: rgba(0,0,0,.5); z-index: 1035;
         }
         .sidebar-overlay.show { display: block; }
 
-        /* ── Main ── */
+        /* ── Main layout ── */
         .main-wrapper {
             margin-left: var(--sidebar-width);
             min-height: 100vh; display: flex; flex-direction: column;
@@ -69,11 +71,11 @@
             height: var(--topbar-height); background: #fff;
             border-bottom: 1px solid #e9ecef;
             display: flex; align-items: center;
-            padding: 0 24px; gap: 12px;
+            padding: 0 16px; gap: 10px;
             position: sticky; top: 0; z-index: 1030;
         }
-        .topbar-title { font-weight: 600; font-size: 1rem; flex: 1; }
-        .content { padding: 24px; flex: 1; overflow-x: hidden; }
+        .topbar-title { font-weight: 600; font-size: 1rem; flex: 1; min-width: 0; }
+        .content { padding: 20px 16px; flex: 1; overflow-x: hidden; }
 
         /* ── Cards ── */
         .card { border: none; border-radius: 12px; box-shadow: 0 1px 8px rgba(0,0,0,.07); }
@@ -82,18 +84,22 @@
         /* ── Stat cards ── */
         .stat-card { border-left: 4px solid; }
         .stat-card .stat-icon {
-            width: 48px; height: 48px; border-radius: 12px;
-            display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
+            width: 44px; height: 44px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+            flex-shrink: 0;
         }
-        .stat-val   { font-size: 1.6rem; font-weight: 700; line-height: 1.1; }
-        .stat-label { font-size: .78rem; color: #6c757d; margin-bottom: 2px; }
+        .stat-val   { font-size: 1.5rem; font-weight: 700; line-height: 1.1; }
+        .stat-label { font-size: .76rem; color: #6c757d; margin-bottom: 2px; }
 
         /* ── Table ── */
         .table th {
-            font-size: .78rem; font-weight: 600; text-transform: uppercase;
+            font-size: .75rem; font-weight: 600; text-transform: uppercase;
             letter-spacing: .04em; color: #6c757d; border-top: none;
         }
         .table td { vertical-align: middle; }
+
+        /* ── Reusable btn-xs ── */
+        .btn-xs { padding: 3px 8px; font-size: .75rem; }
 
         /* ── Status badges ── */
         .badge-lunas   { background: #d1fae5; color: #065f46; }
@@ -110,15 +116,32 @@
 
         /* ── Session timeout warning ── */
         #session-warning {
-            position: fixed; bottom: 24px; right: 24px; z-index: 9999;
-            min-width: 300px; display: none;
+            position: fixed; bottom: 24px; right: 16px; z-index: 9999;
+            min-width: 280px; max-width: calc(100vw - 32px); display: none;
         }
 
-        /* ── Responsive ── */
+        /* ═══════════════════════════════════════
+           MOBILE — breakpoint 992px (konsisten
+           dengan Bootstrap lg)
+        ═══════════════════════════════════════ */
         @media (max-width: 991.98px) {
             .sidebar { transform: translateX(-100%); }
             .sidebar.show { transform: translateX(0); }
             .main-wrapper { margin-left: 0; }
+            .content { padding: 14px 12px; }
+            .topbar { padding: 0 12px; }
+        }
+
+        /* Mobile — tabel horizontal scroll */
+        @media (max-width: 767.98px) {
+            /* Filter forms — stack vertically */
+            .filter-form-wrap { flex-direction: column !important; align-items: stretch !important; }
+            .filter-form-wrap .form-control,
+            .filter-form-wrap .form-select { width: 100% !important; }
+            /* Card header — stack on mobile */
+            .card-header-mobile { flex-direction: column !important; align-items: flex-start !important; gap: 10px !important; }
+            /* Stat val smaller on tiny screens */
+            .stat-val { font-size: 1.25rem; }
         }
 
         /* ── Print ── */
@@ -133,7 +156,7 @@
 <body>
 
 {{-- SIDEBAR OVERLAY (mobile) --}}
-<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
 
 {{-- SIDEBAR --}}
 <nav class="sidebar" id="sidebar">
@@ -158,7 +181,8 @@
     @endcanany
 
     <div class="nav-section">Toko</div>
-    <a href="{{ route('transactions.create') }}" class="nav-link {{ request()->routeIs('transactions.create') ? 'active' : '' }}">
+    <a href="{{ route('transactions.create') }}" class="nav-link {{ request()->routeIs('transactions.create') ? 'active' : '' }}"
+       onclick="if(window.innerWidth<992) closeSidebar()">
         <i class="bi bi-cart-plus"></i> POS / Kasir
     </a>
     <a href="{{ route('transactions.index') }}" class="nav-link {{ request()->routeIs('transactions.index','transactions.show') ? 'active' : '' }}">
@@ -230,10 +254,12 @@
 <div class="main-wrapper">
     {{-- TOPBAR --}}
     <div class="topbar">
-        <button class="btn btn-sm btn-light d-lg-none" onclick="openSidebar()">
+        {{-- Hamburger — tampil di <992px --}}
+        <button class="btn btn-sm btn-light d-lg-none flex-shrink-0" id="btn-sidebar-toggle"
+                aria-label="Buka menu" style="min-width:36px;min-height:36px">
             <i class="bi bi-list fs-5"></i>
         </button>
-        <div class="topbar-title">@yield('page-title', 'Dashboard')</div>
+        <div class="topbar-title text-truncate">@yield('page-title', 'Dashboard')</div>
 
         {{-- Notifikasi stok menipis --}}
         @php
@@ -242,25 +268,21 @@
                 ->count();
         @endphp
         @if($stokAlert > 0)
-        <a href="{{ route('reports.stok') }}" class="btn btn-sm btn-light notif-btn" title="{{ $stokAlert }} produk stok menipis">
+        <a href="{{ route('reports.stok') }}" class="btn btn-sm btn-light notif-btn flex-shrink-0"
+           title="{{ $stokAlert }} produk stok menipis">
             <i class="bi bi-bell"></i>
             <span class="notif-dot"></span>
         </a>
         @endif
 
-        <div class="text-muted small d-none d-md-block" id="session-countdown"></div>
+        <div class="text-muted small d-none d-md-block flex-shrink-0" id="session-countdown"></div>
     </div>
 
-    {{-- ══════════════════════════════════════════════
-         SISTEM NOTIFIKASI TOAST GLOBAL
-         Menangani: session flash, JS alerts, validasi
-    ══════════════════════════════════════════════ --}}
-
-    {{-- Container toast (pojok kanan atas) --}}
+    {{-- Toast container --}}
     <div id="toast-container" aria-live="polite" aria-atomic="true"
-         style="position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;max-width:380px;width:calc(100% - 40px)"></div>
+         style="position:fixed;top:70px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;max-width:360px;width:calc(100% - 32px)"></div>
 
-    {{-- Data flash dari PHP → dibaca oleh JS saat DOM ready --}}
+    {{-- Flash messages --}}
     @if(session('success'))
     <script>document.addEventListener('DOMContentLoaded',function(){ showToast('success', "{{ addslashes(session('success')) }}", 5000); });</script>
     @endif
@@ -291,12 +313,12 @@
 
 {{-- Session Timeout Warning --}}
 <div id="session-warning" class="toast align-items-center text-bg-warning border-0 shadow-lg" role="alert">
-    <div class="d-flex">
-        <div class="toast-body fw-semibold">
+    <div class="d-flex flex-wrap">
+        <div class="toast-body fw-semibold flex-grow-1">
             <i class="bi bi-clock-history me-2"></i>
-            <span id="warning-text">Sesi akan berakhir dalam 5 menit karena tidak ada aktivitas.</span>
+            <span id="warning-text">Sesi akan berakhir.</span>
         </div>
-        <button type="button" class="btn btn-sm btn-warning ms-2 me-2 my-auto" onclick="resetActivity()">
+        <button type="button" class="btn btn-sm btn-warning me-2 my-auto flex-shrink-0" onclick="resetActivity()">
             Tetap Login
         </button>
     </div>
@@ -305,24 +327,63 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-// ── Sidebar mobile ──────────────────────────────────────────
-function openSidebar()  {
-    document.getElementById('sidebar').classList.add('show');
-    document.getElementById('sidebar-overlay').classList.add('show');
+/* ══════════════════════════════════════════
+   SIDEBAR — mobile toggle (breakpoint 992px)
+   ══════════════════════════════════════════ */
+const sidebar        = document.getElementById('sidebar');
+const overlay        = document.getElementById('sidebar-overlay');
+const toggleBtn      = document.getElementById('btn-sidebar-toggle');
+
+function openSidebar() {
+    sidebar.classList.add('show');
+    overlay.classList.add('show');
+    document.body.style.overflow = 'hidden';   // prevent body scroll saat sidebar terbuka
 }
 function closeSidebar() {
-    document.getElementById('sidebar').classList.remove('show');
-    document.getElementById('sidebar-overlay').classList.remove('show');
+    sidebar.classList.remove('show');
+    overlay.classList.remove('show');
+    document.body.style.overflow = '';
 }
 
-// ── Auto-logout & countdown ─────────────────────────────────
-const TIMEOUT_SEC   = 30 * 60;   // 30 menit
-const WARNING_SEC   = 5  * 60;   // warning 5 menit sebelum
+toggleBtn.addEventListener('click', function() {
+    sidebar.classList.contains('show') ? closeSidebar() : openSidebar();
+});
+
+// Tutup saat klik overlay
+overlay.addEventListener('click', closeSidebar);
+
+// Tutup sidebar saat navigasi link (mobile only)
+sidebar.querySelectorAll('.nav-link').forEach(function(link) {
+    link.addEventListener('click', function() {
+        if (window.innerWidth < 992) closeSidebar();
+    });
+});
+
+// Tutup saat swipe ke kiri di sidebar
+(function() {
+    var startX, startY;
+    sidebar.addEventListener('touchstart', function(e) {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+    }, { passive: true });
+    sidebar.addEventListener('touchend', function(e) {
+        if (!startX) return;
+        var dx = e.changedTouches[0].clientX - startX;
+        var dy = Math.abs(e.changedTouches[0].clientY - startY);
+        if (dx < -50 && dy < 50) closeSidebar();
+        startX = startY = null;
+    }, { passive: true });
+})();
+
+/* ══════════════════════════════════════════
+   SESSION / AUTO-LOGOUT
+   ══════════════════════════════════════════ */
+const TIMEOUT_SEC   = 30 * 60;
+const WARNING_SEC   = 5  * 60;
 const HEARTBEAT_URL = '{{ route("heartbeat") }}';
 const CSRF          = document.querySelector('meta[name=csrf-token]').content;
 
 let idleTimer = TIMEOUT_SEC;
-let heartbeatInterval;
 
 function formatTime(s) {
     const m = Math.floor(s / 60), sec = s % 60;
@@ -333,20 +394,11 @@ function updateCountdown() {
     const el = document.getElementById('session-countdown');
     const wn = document.getElementById('session-warning');
     const wt = document.getElementById('warning-text');
-
     idleTimer--;
-
-    if (idleTimer <= 0) {
-        window.location.href = '{{ route("login") }}';
-        return;
-    }
-
+    if (idleTimer <= 0) { window.location.href = '{{ route("login") }}'; return; }
     if (idleTimer <= WARNING_SEC) {
-        if (el) el.textContent = `⏱ Sesi: ${formatTime(idleTimer)}`;
-        if (wn) {
-            wn.style.display = 'flex';
-            if (wt) wt.textContent = `Sesi akan berakhir dalam ${formatTime(idleTimer)} karena tidak ada aktivitas.`;
-        }
+        if (el) el.textContent = `⏱ ${formatTime(idleTimer)}`;
+        if (wn) { wn.style.display = 'flex'; if (wt) wt.textContent = `Sesi berakhir dalam ${formatTime(idleTimer)}.`; }
     } else {
         if (el) el.textContent = '';
         if (wn) wn.style.display = 'none';
@@ -360,249 +412,112 @@ function resetActivity() {
 }
 
 async function sendHeartbeat() {
-    try {
-        await fetch(HEARTBEAT_URL, {
-            method: 'POST',
-            headers: { 'X-CSRF-TOKEN': CSRF, 'X-Heartbeat': '1', 'Accept': 'application/json' }
-        });
-    } catch(e) {}
+    try { await fetch(HEARTBEAT_URL, { method: 'POST', headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' } }); } catch(e) {}
 }
 
-// Reset timer saat ada aktivitas pengguna
 ['mousemove','keydown','click','touchstart','scroll'].forEach(evt =>
     document.addEventListener(evt, () => { idleTimer = TIMEOUT_SEC; }, { passive: true })
 );
-
-// Countdown setiap detik
 setInterval(updateCountdown, 1000);
-
-// Heartbeat ke server setiap 4 menit
-heartbeatInterval = setInterval(sendHeartbeat, 4 * 60 * 1000);
+setInterval(sendHeartbeat, 4 * 60 * 1000);
 </script>
 
-{{-- ══════════════════════════════════════════════
-     GLOBAL TOAST NOTIFICATION SYSTEM
-══════════════════════════════════════════════ --}}
+{{-- ══════════════════════════════════════
+     GLOBAL TOAST
+══════════════════════════════════════ --}}
 <style>
-/* ── Toast Base ── */
 .ntf-toast {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 14px 16px;
-    border-radius: 12px;
-    box-shadow: 0 8px 28px rgba(0,0,0,.15), 0 2px 8px rgba(0,0,0,.08);
-    font-size: .88rem;
-    line-height: 1.5;
-    color: #fff;
-    position: relative;
-    overflow: hidden;
-    /* Animasi masuk */
-    animation: ntfSlideIn .35s cubic-bezier(.34,1.56,.64,1) forwards;
-    min-width: 0;
-    word-break: break-word;
+    display:flex; align-items:flex-start; gap:10px; padding:12px 14px;
+    border-radius:12px; box-shadow:0 8px 28px rgba(0,0,0,.15);
+    font-size:.86rem; line-height:1.5; color:#fff; position:relative;
+    overflow:hidden; animation:ntfSlideIn .35s cubic-bezier(.34,1.56,.64,1) forwards;
+    min-width:0; word-break:break-word;
 }
-.ntf-toast.ntf-hiding {
-    animation: ntfSlideOut .3s ease-in forwards;
-}
-
-/* Warna per tipe */
-.ntf-toast.ntf-success { background: linear-gradient(135deg, #059669, #047857); }
-.ntf-toast.ntf-error   { background: linear-gradient(135deg, #dc2626, #b91c1c); }
-.ntf-toast.ntf-warning { background: linear-gradient(135deg, #d97706, #b45309); }
-.ntf-toast.ntf-info    { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
-
-/* Progress bar di bawah */
+.ntf-toast.ntf-hiding { animation:ntfSlideOut .3s ease-in forwards; }
+.ntf-toast.ntf-success { background:linear-gradient(135deg,#059669,#047857); }
+.ntf-toast.ntf-error   { background:linear-gradient(135deg,#dc2626,#b91c1c); }
+.ntf-toast.ntf-warning { background:linear-gradient(135deg,#d97706,#b45309); }
+.ntf-toast.ntf-info    { background:linear-gradient(135deg,#2563eb,#1d4ed8); }
 .ntf-toast::after {
-    content: '';
-    position: absolute;
-    bottom: 0; left: 0;
-    height: 3px;
-    background: rgba(255,255,255,.45);
-    border-radius: 0 0 12px 12px;
-    animation: ntfProgress var(--ntf-dur, 5000ms) linear forwards;
+    content:''; position:absolute; bottom:0; left:0; height:3px;
+    background:rgba(255,255,255,.4); border-radius:0 0 12px 12px;
+    animation:ntfProgress var(--ntf-dur,5000ms) linear forwards;
 }
-
-/* Icon */
-.ntf-icon {
-    font-size: 1.25rem;
-    flex-shrink: 0;
-    line-height: 1.4;
-}
-
-/* Content */
-.ntf-body { flex: 1; min-width: 0; }
-.ntf-title { font-weight: 700; margin-bottom: 2px; }
-
-/* Tombol tutup */
-.ntf-close {
-    flex-shrink: 0;
-    background: none;
-    border: none;
-    color: rgba(255,255,255,.7);
-    cursor: pointer;
-    padding: 0 2px;
-    font-size: 1rem;
-    line-height: 1;
-    margin-top: 1px;
-    transition: color .15s;
-}
-.ntf-close:hover { color: #fff; }
-
-/* Animasi */
-@keyframes ntfSlideIn {
-    from { opacity: 0; transform: translateX(60px) scale(.9); }
-    to   { opacity: 1; transform: translateX(0)    scale(1);  }
-}
-@keyframes ntfSlideOut {
-    from { opacity: 1; transform: translateX(0)    scale(1); max-height: 100px; margin-bottom: 0; }
-    to   { opacity: 0; transform: translateX(60px) scale(.9); max-height: 0;   margin-bottom: -10px; }
-}
-@keyframes ntfProgress {
-    from { width: 100%; }
-    to   { width: 0%; }
-}
-
-/* Mobile */
-@media (max-width: 576px) {
-    #toast-container { top: auto; bottom: 16px; right: 12px; left: 12px; max-width: none; }
-    .ntf-toast { animation-name: ntfSlideUp; }
-    @keyframes ntfSlideUp {
-        from { opacity: 0; transform: translateY(40px) scale(.9); }
-        to   { opacity: 1; transform: translateY(0)    scale(1);  }
-    }
+.ntf-icon  { font-size:1.2rem; flex-shrink:0; line-height:1.4; }
+.ntf-body  { flex:1; min-width:0; }
+.ntf-title { font-weight:700; margin-bottom:2px; }
+.ntf-close { flex-shrink:0; background:none; border:none; color:rgba(255,255,255,.7); cursor:pointer; padding:0 2px; font-size:1rem; line-height:1; transition:color .15s; }
+.ntf-close:hover { color:#fff; }
+@keyframes ntfSlideIn  { from{opacity:0;transform:translateX(60px) scale(.9)} to{opacity:1;transform:none} }
+@keyframes ntfSlideOut { from{opacity:1;transform:none;max-height:100px} to{opacity:0;transform:translateX(60px) scale(.9);max-height:0} }
+@keyframes ntfProgress { from{width:100%} to{width:0} }
+@media (max-width:576px) {
+    #toast-container { top:auto!important; bottom:16px; right:12px; left:12px; max-width:none!important; width:auto!important; }
+    .ntf-toast { animation-name:ntfSlideUp; }
+    @keyframes ntfSlideUp { from{opacity:0;transform:translateY(40px) scale(.9)} to{opacity:1;transform:none} }
 }
 </style>
 
 <script>
-/* ════════════════════════════════════════════════════
-   showToast(type, message, duration)
-   type: 'success' | 'error' | 'warning' | 'info'
-   Dipanggil dari mana saja — menggantikan alert()
-   ════════════════════════════════════════════════════ */
 function showToast(type, message, duration) {
     duration = duration || 4500;
-
-    var icons = {
-        success : 'bi-check-circle-fill',
-        error   : 'bi-x-circle-fill',
-        warning : 'bi-exclamation-triangle-fill',
-        info    : 'bi-info-circle-fill',
-    };
-    var titles = {
-        success : 'Berhasil',
-        error   : 'Terjadi Kesalahan',
-        warning : 'Perhatian',
-        info    : 'Informasi',
-    };
-
-    var container = document.getElementById('toast-container');
-    if (!container) return;
-
-    var toast = document.createElement('div');
-    toast.className = 'ntf-toast ntf-' + type;
-    toast.style.setProperty('--ntf-dur', duration + 'ms');
-    toast.innerHTML =
-        '<i class="bi ' + icons[type] + ' ntf-icon"></i>' +
-        '<div class="ntf-body">' +
-            '<div class="ntf-title">' + titles[type] + '</div>' +
-            '<div>' + message + '</div>' +
-        '</div>' +
-        '<button class="ntf-close" aria-label="Tutup">' +
-            '<i class="bi bi-x-lg"></i>' +
-        '</button>';
-
-    /* Tombol tutup */
-    toast.querySelector('.ntf-close').addEventListener('click', function () {
-        hideToast(toast);
-    });
-
-    container.appendChild(toast);
-
-    /* Auto-dismiss */
-    var timer = setTimeout(function () { hideToast(toast); }, duration);
-    toast._timer = timer;
-
-    /* Pause on hover */
-    toast.addEventListener('mouseenter', function () { clearTimeout(toast._timer); toast.style.animationPlayState = 'paused'; });
-    toast.addEventListener('mouseleave', function () {
-        toast.style.animationPlayState = '';
-        toast._timer = setTimeout(function () { hideToast(toast); }, 1500);
-    });
+    var icons  = { success:'bi-check-circle-fill', error:'bi-x-circle-fill', warning:'bi-exclamation-triangle-fill', info:'bi-info-circle-fill' };
+    var titles = { success:'Berhasil', error:'Terjadi Kesalahan', warning:'Perhatian', info:'Informasi' };
+    var c = document.getElementById('toast-container'); if (!c) return;
+    var t = document.createElement('div');
+    t.className = 'ntf-toast ntf-' + type;
+    t.style.setProperty('--ntf-dur', duration + 'ms');
+    t.innerHTML = '<i class="bi ' + icons[type] + ' ntf-icon"></i><div class="ntf-body"><div class="ntf-title">' + titles[type] + '</div><div>' + message + '</div></div><button class="ntf-close" aria-label="Tutup"><i class="bi bi-x-lg"></i></button>';
+    t.querySelector('.ntf-close').onclick = function() { hideToast(t); };
+    c.appendChild(t);
+    var timer = setTimeout(function(){ hideToast(t); }, duration);
+    t._timer = timer;
+    t.addEventListener('mouseenter', function(){ clearTimeout(t._timer); });
+    t.addEventListener('mouseleave', function(){ t._timer = setTimeout(function(){ hideToast(t); }, 1500); });
+}
+function hideToast(t) {
+    if (!t || t._hidden) return; t._hidden = true;
+    t.classList.add('ntf-hiding');
+    setTimeout(function(){ t.parentNode && t.parentNode.removeChild(t); }, 350);
 }
 
-function hideToast(toast) {
-    if (!toast || toast._hidden) return;
-    toast._hidden = true;
-    toast.classList.add('ntf-hiding');
-    setTimeout(function () {
-        if (toast.parentNode) toast.parentNode.removeChild(toast);
-    }, 350);
-}
-
-/* Intercept konfirmasi hapus (data-confirm) */
+/* Confirm dialog */
 document.addEventListener('DOMContentLoaded', function () {
-    document.addEventListener('submit', function (e) {
-        var form = e.target;
-        if (!form.hasAttribute('data-confirm')) return;
-        e.preventDefault();
-        var msg = form.getAttribute('data-confirm') || 'Yakin ingin menghapus data ini?';
-        showConfirm(msg, function () { form.submit(); });
+    document.addEventListener('submit', function(e) {
+        var f = e.target; if (!f.hasAttribute('data-confirm')) return;
+        e.preventDefault(); showConfirm(f.getAttribute('data-confirm'), function(){ f.submit(); });
     });
-    /* Untuk element non-form (link/button) dengan data-confirm */
-    document.querySelectorAll('a[data-confirm], button[data-confirm]').forEach(function (el) {
-        el.addEventListener('click', function (e) {
-            e.preventDefault();
-            var msg = el.getAttribute('data-confirm');
-            showConfirm(msg, function () {
-                if (el.tagName === 'A') window.location = el.href;
-                else el.form && el.form.submit();
+    document.querySelectorAll('a[data-confirm], button[data-confirm]').forEach(function(el) {
+        el.addEventListener('click', function(e) {
+            e.preventDefault(); showConfirm(el.getAttribute('data-confirm'), function(){
+                el.tagName==='A' ? (window.location=el.href) : (el.form && el.form.submit());
             });
         });
     });
 });
 
-/* ════════════════════════════════════════════════════
-   showConfirm(message, onConfirm)
-   Menggantikan confirm() native
-   ════════════════════════════════════════════════════ */
-function showConfirm(message, onConfirm) {
-    /* Hapus modal lama jika ada */
-    var old = document.getElementById('ntf-confirm-modal');
-    if (old) old.remove();
-
-    var overlay = document.createElement('div');
-    overlay.id = 'ntf-confirm-modal';
-    overlay.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:20px;animation:ntfFadeIn .2s ease';
-    overlay.innerHTML =
-        '<div style="background:#fff;border-radius:16px;padding:28px 28px 24px;max-width:400px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:ntfPopIn .3s cubic-bezier(.34,1.56,.64,1)">' +
-            '<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">' +
-                '<div style="width:44px;height:44px;border-radius:50%;background:#fee2e2;display:flex;align-items:center;justify-content:center;flex-shrink:0">' +
-                    '<i class="bi bi-exclamation-triangle-fill" style="color:#dc2626;font-size:1.2rem"></i>' +
-                '</div>' +
-                '<div>' +
-                    '<div style="font-weight:700;font-size:1rem;color:#1e293b">Konfirmasi Hapus</div>' +
-                    '<div style="font-size:.85rem;color:#64748b;margin-top:2px">' + message + '</div>' +
-                '</div>' +
-            '</div>' +
-            '<div style="display:flex;gap:10px;justify-content:flex-end">' +
-                '<button id="ntf-cancel-btn" style="padding:9px 20px;border-radius:8px;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;font-weight:600;cursor:pointer;font-size:.88rem">Batal</button>' +
-                '<button id="ntf-ok-btn"     style="padding:9px 20px;border-radius:8px;border:none;background:#dc2626;color:#fff;font-weight:600;cursor:pointer;font-size:.88rem">Ya, Hapus</button>' +
-            '</div>' +
-        '</div>';
-
-    document.body.appendChild(overlay);
-
-    overlay.querySelector('#ntf-ok-btn').addEventListener('click', function () {
-        overlay.remove();
-        if (typeof onConfirm === 'function') onConfirm();
-    });
-    overlay.querySelector('#ntf-cancel-btn').addEventListener('click', function () { overlay.remove(); });
-    overlay.addEventListener('click', function (e) { if (e.target === overlay) overlay.remove(); });
+function showConfirm(message, onOk) {
+    var old = document.getElementById('ntf-confirm-modal'); if (old) old.remove();
+    var ov = document.createElement('div');
+    ov.id = 'ntf-confirm-modal';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:20px';
+    ov.innerHTML = '<div style="background:#fff;border-radius:16px;padding:24px;max-width:380px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.25)">' +
+        '<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">' +
+        '<div style="width:44px;height:44px;border-radius:50%;background:#fee2e2;display:flex;align-items:center;justify-content:center;flex-shrink:0">' +
+        '<i class="bi bi-exclamation-triangle-fill" style="color:#dc2626;font-size:1.2rem"></i></div>' +
+        '<div><div style="font-weight:700;font-size:1rem;color:#1e293b">Konfirmasi</div>' +
+        '<div style="font-size:.85rem;color:#64748b;margin-top:2px">' + message + '</div></div></div>' +
+        '<div style="display:flex;gap:10px;justify-content:flex-end">' +
+        '<button id="ntf-cancel-btn" style="padding:9px 20px;border-radius:8px;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;font-weight:600;cursor:pointer;font-size:.88rem">Batal</button>' +
+        '<button id="ntf-ok-btn" style="padding:9px 20px;border-radius:8px;border:none;background:#dc2626;color:#fff;font-weight:600;cursor:pointer;font-size:.88rem">Ya, Hapus</button>' +
+        '</div></div>';
+    document.body.appendChild(ov);
+    ov.querySelector('#ntf-ok-btn').onclick = function(){ ov.remove(); if(typeof onOk==='function') onOk(); };
+    ov.querySelector('#ntf-cancel-btn').onclick = function(){ ov.remove(); };
+    ov.addEventListener('click', function(e){ if(e.target===ov) ov.remove(); });
 }
 
-/* Inject CSS untuk animasi modal */
-(function () {
+(function(){
     var s = document.createElement('style');
     s.textContent = '@keyframes ntfFadeIn{from{opacity:0}to{opacity:1}}@keyframes ntfPopIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}';
     document.head.appendChild(s);

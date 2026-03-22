@@ -13,7 +13,7 @@
     <div class="card-header p-3"><i class="bi bi-person text-primary me-2"></i>Data Pasien & Kunjungan</div>
     <div class="card-body p-4">
         <div class="row g-3">
-            <div class="col-md-5">
+            <div class="col-12 col-md-5">
                 <label class="form-label fw-semibold">Pasien <span class="text-danger">*</span></label>
                 <select name="patient_id" class="form-select @error('patient_id') is-invalid @enderror" required>
                     <option value="">-- Pilih Pasien --</option>
@@ -26,7 +26,7 @@
                 </select>
                 @error('patient_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
-            <div class="col-md-4">
+            <div class="col-12 col-md-4">
                 <label class="form-label fw-semibold">Dokter / Pemeriksa <span class="text-danger">*</span></label>
                 <select name="user_id" class="form-select @error('user_id') is-invalid @enderror" required>
                     <option value="">-- Pilih Dokter --</option>
@@ -38,7 +38,7 @@
                 </select>
                 @error('user_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
-            <div class="col-md-3">
+            <div class="col-12 col-md-3">
                 <label class="form-label fw-semibold">Tanggal Kunjungan <span class="text-danger">*</span></label>
                 <input type="date" name="tanggal_kunjungan" class="form-control @error('tanggal_kunjungan') is-invalid @enderror"
                        value="{{ old('tanggal_kunjungan', today()->format('Y-m-d')) }}" required>
@@ -102,12 +102,12 @@
             </table>
         </div>
         <div class="row g-3 mt-1">
-            <div class="col-md-3">
+            <div class="col-12 col-md-3">
                 <label class="form-label fw-semibold">PD Total / Binokular</label>
                 <input type="number" name="pd_total" class="form-control" step="0.5" min="40" max="80"
                        value="{{ old('pd_total') }}" placeholder="60.0">
             </div>
-            <div class="col-md-4">
+            <div class="col-12 col-md-4">
                 <label class="form-label fw-semibold">Jenis Lensa</label>
                 <select name="jenis_lensa" class="form-select">
                     <option value="">-- Pilih --</option>
@@ -118,7 +118,7 @@
                     <option value="Blue Cut" {{ old('jenis_lensa') == 'Blue Cut' ? 'selected':'' }}>Blue Cut</option>
                 </select>
             </div>
-            <div class="col-md-5">
+            <div class="col-12 col-md-5">
                 <label class="form-label fw-semibold">Rekomendasi Frame</label>
                 <input type="text" name="rekomendasi_frame" class="form-control"
                        value="{{ old('rekomendasi_frame') }}" placeholder="Full rim, semi rim, rimless...">

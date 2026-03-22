@@ -151,7 +151,7 @@
                 <div class="card-body p-4">
                     <div class="row g-4">
                         {{-- Panduan langkah --}}
-                        <div class="col-md-4">
+                        <div class="col-12 col-md-4">
                             <p class="fw-semibold small mb-3">Langkah-langkah:</p>
                             <div class="d-flex flex-column gap-3">
                                 <div class="d-flex gap-2">
@@ -170,7 +170,7 @@
                         </div>
 
                         {{-- Form --}}
-                        <div class="col-md-8">
+                        <div class="col-12 col-md-8">
                             <form action="{{ route('import.produk') }}" method="POST"
                                   enctype="multipart/form-data" id="form-produk">
                                 @csrf
@@ -249,7 +249,7 @@
                 </div>
                 <div class="card-body p-4">
                     <div class="row g-4">
-                        <div class="col-md-4">
+                        <div class="col-12 col-md-4">
                             <p class="fw-semibold small mb-3">Panduan kolom:</p>
                             <ul class="small text-muted ps-3">
                                 <li><strong>nama</strong> — wajib</li>
@@ -258,7 +258,7 @@
                                 <li><strong>no_hp, no_bpjs, email, alamat</strong> — opsional</li>
                             </ul>
                         </div>
-                        <div class="col-md-8">
+                        <div class="col-12 col-md-8">
                             <form action="{{ route('import.pasien') }}" method="POST"
                                   enctype="multipart/form-data" id="form-pasien">
                                 @csrf
@@ -316,7 +316,7 @@
             <div class="row g-4">
 
                 {{-- Export Produk --}}
-                <div class="col-md-6">
+                <div class="col-12 col-md-6">
                     <div class="export-card h-100">
                         <div class="d-flex align-items-center gap-3 mb-3">
                             <div class="rounded-circle d-flex align-items-center justify-content-center"
@@ -351,7 +351,7 @@
                 </div>
 
                 {{-- Export Pasien --}}
-                <div class="col-md-6">
+                <div class="col-12 col-md-6">
                     <div class="export-card h-100">
                         <div class="d-flex align-items-center gap-3 mb-3">
                             <div class="rounded-circle d-flex align-items-center justify-content-center"

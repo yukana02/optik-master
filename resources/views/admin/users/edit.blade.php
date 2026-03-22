@@ -4,7 +4,7 @@
 @section('page-title','Edit User')
 @section('content')
 <div class="row justify-content-center">
-<div class="col-md-6">
+<div class="col-12 col-md-6">
 <div class="card">
     <div class="card-header p-3"><i class="bi bi-pencil text-warning me-2"></i>Edit User: {{ $user->name }}</div>
     <div class="card-body p-4">

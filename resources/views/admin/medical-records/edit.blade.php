@@ -14,7 +14,7 @@
     </div>
     <div class="card-body p-4">
         <div class="row g-3">
-            <div class="col-md-5">
+            <div class="col-12 col-md-5">
                 <label class="form-label fw-semibold">Pasien <span class="text-danger">*</span></label>
                 <select name="patient_id" class="form-select" required>
                     @foreach($patients as $p)
@@ -25,7 +25,7 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-4">
+            <div class="col-12 col-md-4">
                 <label class="form-label fw-semibold">Dokter <span class="text-danger">*</span></label>
                 <select name="user_id" class="form-select" required>
                     @foreach($dokters as $d)
@@ -36,7 +36,7 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-3">
+            <div class="col-12 col-md-3">
                 <label class="form-label fw-semibold">Tanggal Kunjungan <span class="text-danger">*</span></label>
                 <input type="date" name="tanggal_kunjungan" class="form-control" required
                        value="{{ old('tanggal_kunjungan',$medicalRecord->tanggal_kunjungan->format('Y-m-d')) }}">
@@ -79,12 +79,12 @@
             </table>
         </div>
         <div class="row g-3 mt-1">
-            <div class="col-md-3">
+            <div class="col-12 col-md-3">
                 <label class="form-label fw-semibold">PD Total</label>
                 <input type="number" name="pd_total" class="form-control" step="0.5"
                        value="{{ old('pd_total',$medicalRecord->pd_total) }}">
             </div>
-            <div class="col-md-4">
+            <div class="col-12 col-md-4">
                 <label class="form-label fw-semibold">Jenis Lensa</label>
                 <select name="jenis_lensa" class="form-select">
                     <option value="">-- Pilih --</option>
@@ -93,7 +93,7 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-5">
+            <div class="col-12 col-md-5">
                 <label class="form-label fw-semibold">Rekomendasi Frame</label>
                 <input type="text" name="rekomendasi_frame" class="form-control"
                        value="{{ old('rekomendasi_frame',$medicalRecord->rekomendasi_frame) }}">

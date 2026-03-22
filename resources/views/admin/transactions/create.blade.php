@@ -22,7 +22,7 @@
 /* ════════════════════════════════════════
    MOBILE
    ════════════════════════════════════════ */
-@media (max-width: 899px) {
+@media (max-width: 991.98px) {
     .pos-wrap { display: block; }
     .mob-tab-bar {
         display: flex !important;
@@ -48,8 +48,8 @@
     }
     #btn-float-cart.hidden { display: none !important; }
     .pos-right { position: static; max-height: none; overflow: visible; }
-    .pos-right-inner { position: static; max-height: none; overflow: visible; }
-    .product-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); max-height: none !important; gap: 8px; }
+    .pos-right-inner { position: static; max-height: none; overflow: visible; padding-bottom: 80px; }
+    .product-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); max-height: 55vh; gap: 8px; overflow-y: auto; }
     .product-card { padding: 8px 6px; }
     .product-card-img { width: 40px; height: 40px; }
     .product-card-name  { font-size: .72rem; }
@@ -66,7 +66,7 @@
 /* ════════════════════════════════════════
    DESKTOP
    ════════════════════════════════════════ */
-@media (min-width: 900px) {
+@media (min-width: 992px) {
     .mob-tab-bar    { display: none; }
     #btn-float-cart { display: none !important; }
     .pos-left, .pos-right { display: block !important; }
@@ -713,7 +713,7 @@ document.querySelectorAll('.mob-tab-btn').forEach(function (btn) {
 });
 
 function mobSwitch(tab) {
-    if (window.innerWidth >= 900) return;
+    if (window.innerWidth >= 992) return;
     document.getElementById('panel-produk').classList.toggle('mob-active', tab === 'produk');
     document.getElementById('panel-kasir').classList.toggle('mob-active',  tab === 'kasir');
     document.querySelectorAll('.mob-tab-btn').forEach(function (b) {
@@ -726,7 +726,7 @@ function mobSwitch(tab) {
 document.getElementById('btn-float-cart').addEventListener('click', function () { mobSwitch('kasir'); });
 
 function updateFloatBtn() {
-    const isMobile  = window.innerWidth < 900;
+    const isMobile  = window.innerWidth < 992;
     const btnFloat  = document.getElementById('btn-float-cart');
     const isKasir   = document.getElementById('panel-kasir').classList.contains('mob-active');
     const itemCount = Object.values(cart).reduce(function (s, i) { return s + i.qty; }, 0);
@@ -1167,7 +1167,7 @@ document.getElementById('pos-form').addEventListener('submit', function (e) {
     if (!Object.keys(cart).length) {
         e.preventDefault();
         showToast('warning', 'Keranjang masih kosong! Tambahkan produk terlebih dahulu.', 4000);
-        if (window.innerWidth < 900) mobSwitch('produk');
+        if (window.innerWidth < 992) mobSwitch('produk');
         return;
     }
 

@@ -4,7 +4,7 @@
 @section('content')
 @php $sc=['draft'=>'secondary','dikirim'=>'info text-dark','diterima'=>'success','batal'=>'danger'] @endphp
 <div class="row g-3">
-<div class="col-lg-4">
+<div class="col-12 col-lg-4">
     <div class="card">
         <div class="card-header p-3"><i class="bi bi-info-circle text-primary me-2"></i>Info PO</div>
         <div class="card-body p-4">
@@ -47,7 +47,7 @@
         </div>
     </div>
 </div>
-<div class="col-lg-8">
+<div class="col-12 col-lg-8">
     <div class="card">
         <div class="card-header p-3"><i class="bi bi-box-seam text-primary me-2"></i>Item Produk</div>
         <div class="table-responsive">

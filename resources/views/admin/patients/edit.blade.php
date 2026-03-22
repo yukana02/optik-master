@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="row justify-content-center">
-<div class="col-md-8">
+<div class="col-12 col-md-8">
 <div class="card">
     <div class="card-header p-3">
         <i class="bi bi-pencil text-warning me-2"></i>Edit: {{ $patient->nama }}
@@ -14,13 +14,13 @@
         <form method="POST" action="{{ route('patients.update', $patient) }}">
             @csrf @method('PUT')
             <div class="row g-3">
-                <div class="col-md-8">
+                <div class="col-12 col-md-8">
                     <label class="form-label fw-semibold">Nama Lengkap <span class="text-danger">*</span></label>
                     <input type="text" name="nama" class="form-control @error('nama') is-invalid @enderror"
                            value="{{ old('nama', $patient->nama) }}" required>
                     @error('nama')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-md-4">
+                <div class="col-12 col-md-4">
                     <label class="form-label fw-semibold">Jenis Kelamin</label>
                     <select name="jenis_kelamin" class="form-select">
                         <option value="">-- Pilih --</option>
@@ -28,23 +28,23 @@
                         <option value="P" {{ old('jenis_kelamin', $patient->jenis_kelamin) == 'P' ? 'selected' : '' }}>Perempuan</option>
                     </select>
                 </div>
-                <div class="col-md-6">
+                <div class="col-12 col-md-6">
                     <label class="form-label fw-semibold">Tanggal Lahir</label>
                     <input type="date" name="tanggal_lahir" class="form-control @error('tanggal_lahir') is-invalid @enderror"
                            value="{{ old('tanggal_lahir', $patient->tanggal_lahir?->format('Y-m-d')) }}">
                     @error('tanggal_lahir')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-md-6">
+                <div class="col-12 col-md-6">
                     <label class="form-label fw-semibold">No. HP</label>
                     <input type="text" name="no_hp" class="form-control"
                            value="{{ old('no_hp', $patient->no_hp) }}" placeholder="08xx-xxxx-xxxx">
                 </div>
-                <div class="col-md-6">
+                <div class="col-12 col-md-6">
                     <label class="form-label fw-semibold">No. BPJS</label>
                     <input type="text" name="no_bpjs" class="form-control"
                            value="{{ old('no_bpjs', $patient->no_bpjs) }}" placeholder="Nomor BPJS (opsional)">
                 </div>
-                <div class="col-md-6">
+                <div class="col-12 col-md-6">
                     <label class="form-label fw-semibold">Email</label>
                     <input type="email" name="email" class="form-control"
                            value="{{ old('email', $patient->email) }}">
