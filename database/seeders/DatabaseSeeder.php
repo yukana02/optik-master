@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Models\Category;
+use App\Models\Patient;
 use App\Models\Product;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
@@ -133,5 +134,8 @@ class DatabaseSeeder extends Seeder
         }
 
         $this->command->info('✅ Seeder selesai! Akun: superadmin@optik.com / password');
+
+        // Patient Seeder with Factory
+        Patient::factory()->count(100)->create();
     }
 }

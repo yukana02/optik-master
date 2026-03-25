@@ -19,6 +19,12 @@
 .numpad-btn { font-size: .95rem; font-weight: 600; }
 #total-display { font-size: 2rem; font-weight: 700; color: #1e2a5e; }
 #kembalian-display { font-size: 1.4rem; font-weight: 600; }
+
+#patient-list {
+    z-index: 9999;
+    max-height: 200px;
+    overflow-y: auto;
+}
 </style>
 @endpush
 
@@ -108,12 +114,14 @@
         <div class="card mb-3">
             <div class="card-header p-3"><i class="bi bi-person text-primary me-2"></i>Pasien (Opsional)</div>
             <div class="card-body p-3">
-                <select name="patient_id" id="patient-select" class="form-select form-select-sm mb-2">
-                    <option value="">-- Tanpa Pasien (Umum) --</option>
-                    @foreach($patients as $p)
-                    <option value="{{ $p->id }}" data-bpjs="{{ $p->no_bpjs }}">{{ $p->no_rm }} — {{ $p->nama }}</option>
-                    @endforeach
-                </select>
+                <div class="mb-2 position-relative">
+                    <input type="text" id="patient-search" class="form-control form-control-sm"
+                        placeholder="Cari pasien (nama / no RM)...">
+
+                    <input type="hidden" name="patient_id" id="patient-id">
+
+                    <div id="patient-list" class="list-group position-absolute w-100"></div>
+                </div>
                 <select name="medical_record_id" id="med-rec-select" class="form-select form-select-sm">
                     <option value="">-- Pilih Rekam Medis --</option>
                 </select>
@@ -404,6 +412,79 @@ function syncHiddenInputs() {
         <input type="hidden" name="items[${i}][diskon]"        value="0">
     `).join('');
 }
+
+// ===================== Seacrh Patient =====================
+const input = document.getElementById('patient-search');
+const list = document.getElementById('patient-list');
+const patientId = document.getElementById('patient-id');
+
+let timeout = null;
+
+input.addEventListener('keyup', function () {
+    clearTimeout(timeout);
+
+    const query = this.value;
+
+    if (query.length < 2) {
+        list.innerHTML = '';
+        return;
+    }
+
+    timeout = setTimeout(() => {
+        fetch(`{{ route('patients.search') }}?q=${query}`)
+            .then(res => res.json())
+            .then(data => {
+                list.innerHTML = '';
+
+                data.forEach(item => {
+                    const el = document.createElement('a');
+                    el.classList.add('list-group-item', 'list-group-item-action');
+
+                    el.innerHTML = `
+                        <strong>${item.nama}</strong><br>
+                        <small class="text-muted">${item.no_rm}</small>
+                    `;
+
+                    el.addEventListener('click', () => {
+                        input.value = item.nama;
+                        patientId.value = item.id;
+                        list.innerHTML = '';
+
+                        // 🔥 trigger load rekam medis
+                        loadMedicalRecords(item.id);
+                    });
+
+                    list.appendChild(el);
+                });
+            });
+    }, 300);
+});
+
+function loadMedicalRecords(patientId) {
+    const medSelect = document.getElementById('med-rec-select');
+
+    medSelect.innerHTML = `<option>Loading...</option>`;
+
+    fetch(`/medical-records/by-patient/${patientId}`)
+        .then(res => res.json())
+        .then(data => {
+            medSelect.innerHTML = `<option value="">-- Pilih Rekam Medis --</option>`;
+
+            data.forEach(item => {
+                medSelect.innerHTML += `
+                    <option value="${item.id}">
+                        ${item.tanggal} - ${item.keluhan}
+                    </option>
+                `;
+            });
+        });
+}
+
+document.addEventListener('click', function(e) {
+    if (!document.getElementById('patient-search').contains(e.target)) {
+        document.getElementById('patient-list').innerHTML = '';
+    }
+});
 
 // ===================== REKAM MEDIS AJAX =====================
 document.getElementById('patient-select').addEventListener('change', async function () {
