@@ -197,6 +197,7 @@ class PatientController extends Controller
     {
         $patients = Patient::where('nama', 'like', "%{$request->q}%")
             ->orWhere('no_rm', 'like', "%{$request->q}%")
+            ->orWhere('no_bpjs', 'like', "%{$request->q}%")
             ->limit(10)
             ->get(['id', 'no_rm', 'nama', 'no_hp']);
 
