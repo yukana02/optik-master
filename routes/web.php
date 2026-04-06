@@ -24,6 +24,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('patients/search/json', [PatientController::class, 'search'])->name('patients.search');
             Route::get('patients/export/excel', [PatientController::class, 'export'])->name('patients.export');
             Route::post('patients/import-excel', [PatientController::class, 'import'])->name('patients.import');
+            Route::get('patients/{patient}/latest-refraction', [PatientController::class, 'latestRefraction'])->name('patients.latest-refraction');
         }
     );
 

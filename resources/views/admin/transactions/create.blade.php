@@ -406,6 +406,7 @@
     .co-item-name { flex: 1; color: rgba(255,255,255,0.9); }
     .co-item-qty  { color: rgba(255,255,255,0.6); font-size: 0.72rem; }
     .co-item-price { font-weight: 600; color: #fff; }
+    .btn-xs { padding: 3px 8px; font-size: .75rem; }
 </style>
 @endpush
 
@@ -736,6 +737,17 @@
                                             </tr>
                                         </tbody>
                                     </table>
+                                </div>
+
+                                {{-- Histori Rekam Medis --}}
+                                <div id="patient-history-section" class="mt-3 pt-3 border-top d-none">
+                                    <h6 class="form-label mb-3">
+                                        <i class="bi bi-clipboard2-pulse text-primary me-2"></i>
+                                        Histori Rekam Medis (<span id="history-count">0</span> kunjungan terakhir)
+                                    </h6>
+                                    <div id="patient-history-list">
+                                        {{-- Histori akan di-render di sini via JS --}}
+                                    </div>
                                 </div>
 
                                 <div class="mt-3 pt-3 border-top">
@@ -1190,11 +1202,19 @@ function validateStep(step) {
         }
         document.getElementById('nama_dokter').classList.remove('is-invalid');
 
-        if (!odSph && !osSph) {
-            showStepError(2, 'Refraksi wajib diisi — minimal nilai SPH untuk OD atau OS.');
+        const refractionFields = ['od_sph', 'od_cyl', 'od_axis', 'od_add', 'od_mpd', 'os_sph', 'os_cyl', 'os_axis', 'os_add', 'os_mpd'];
+    
+        const hasAnyRefraction = refractionFields.some(fieldId => {
+            const value = document.getElementById(fieldId).value.trim();
+            return value !== '';
+        });
+
+        if (!hasAnyRefraction) {
+            showStepError(2, 'Refraksi wajib diisi — minimal satu field (Sph/Cyl/Axis/Add/MPD) untuk OD atau OS.');
             document.getElementById('od_sph').focus();
             return false;
         }
+
         return true;
     }
 
@@ -1579,22 +1599,102 @@ function loadPatientHistory() {
     const pid = document.getElementById('patient_id').value;
     if (!pid) return;
 
-    fetch(`{{ url('admin/patients') }}/${pid}/latest-refraction`)
+    fetch(`{{ route('patients.latest-refraction', ':pid') }}`.replace(':pid', pid))
         .then(r => r.json())
         .then(data => {
-            if (!data || !data.od_sph) {
+            // Isi field refraksi dari latest (backward compatibility)
+            if (data.od_sph !== undefined) {
+                const fields = ['od_sph','od_cyl','od_axis','od_add','od_mpd','os_sph','os_cyl','os_axis','os_add','os_mpd'];
+                fields.forEach(f => {
+                    const el = document.getElementById(f);
+                    if (el && data[f] !== undefined && data[f] !== null) {
+                        el.value = data[f];
+                        el.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+                });
+                document.getElementById('history-tag-container').classList.remove('d-none');
+                snackbar('Data refraksi dari histori berhasil dimuat. Periksa kembali sebelum lanjut.', 'info');
+            } else {
                 snackbar('Tidak ada histori refraksi untuk pasien ini.', 'info');
-                return;
             }
-            const fields = ['od_sph','od_cyl','od_axis','od_add','od_mpd','os_sph','os_cyl','os_axis','os_add','os_mpd'];
-            fields.forEach(f => {
-                const el = document.getElementById(f);
-                if (el && data[f] !== undefined && data[f] !== null) el.value = data[f];
-            });
-            document.getElementById('history-tag-container').classList.remove('d-none');
-            snackbar('Data refraksi dari histori berhasil dimuat. Periksa kembali sebelum lanjut.', 'info');
+
+            // Render histori lengkap
+            if (data.history && data.history.length > 0) {
+                renderPatientHistory(data.history);
+                document.getElementById('history-count').textContent = data.history.length;
+                document.getElementById('patient-history-section').classList.remove('d-none');
+            } else {
+                document.getElementById('patient-history-section').classList.add('d-none');
+            }
         })
         .catch(() => snackbar('Gagal memuat histori pasien.', 'error'));
+}
+
+function renderPatientHistory(history) {
+    const container = document.getElementById('patient-history-list');
+    container.innerHTML = '';
+
+    history.forEach(rm => {
+        const rmDiv = document.createElement('div');
+        rmDiv.className = 'p-3 border-bottom';
+        rmDiv.innerHTML = `
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <span class="badge bg-primary me-2">${rm.tanggal_kunjungan}</span>
+                    <small class="text-muted">Dokter: ${rm.dokter}</small>
+                </div>
+                <button type="button" class="btn btn-xs btn-outline-info" onclick="loadFromHistory('${rm.id}', ${JSON.stringify(rm).replace(/"/g, '&quot;')})">
+                    <i class="bi bi-arrow-right-circle"></i> Gunakan
+                </button>
+            </div>
+            ${rm.keluhan ? `<div class="text-muted small mb-2"><i class="bi bi-chat-dots me-1"></i>${rm.keluhan}</div>` : ''}
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered mb-0" style="font-size:.8rem">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Mata</th><th>SPH</th><th>CYL</th><th>AXIS</th><th>ADD</th><th>PD</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="badge bg-danger">OD (Kanan)</span></td>
+                            <td>${rm.od_sph ? rm.od_sph : '-'}</td>
+                            <td>${rm.od_cyl ? rm.od_cyl : '-'}</td>
+                            <td>${rm.od_axis ? rm.od_axis + '°' : '-'}</td>
+                            <td>${rm.od_add ? '+' + rm.od_add : '-'}</td>
+                            <td>${rm.od_pd ? rm.od_pd : '-'}</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge bg-info">OS (Kiri)</span></td>
+                            <td>${rm.os_sph ? rm.os_sph : '-'}</td>
+                            <td>${rm.os_cyl ? rm.os_cyl : '-'}</td>
+                            <td>${rm.os_axis ? rm.os_axis + '°' : '-'}</td>
+                            <td>${rm.os_add ? '+' + rm.os_add : '-'}</td>
+                            <td>${rm.os_pd ? rm.os_pd : '-'}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        `;
+        container.appendChild(rmDiv);
+    });
+}
+
+function loadFromHistory(rmId, rmData) {
+    // Isi field refraksi dari histori yang dipilih
+    const fields = ['od_sph','od_cyl','od_axis','od_add','od_mpd','os_sph','os_cyl','os_axis','os_add','os_mpd'];
+    fields.forEach(f => {
+        const el = document.getElementById(f);
+        if (el) {
+            const key = f.replace('_mpd', '_pd'); // Map mpd to pd
+            el.value = rmData[key] || '';
+
+            // Trigger event input agar validasi membaca ulang
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+    });
+    document.getElementById('history-tag-container').classList.remove('d-none');
+    snackbar('Data refraksi dari histori berhasil dimuat. Periksa kembali sebelum lanjut.', 'info');
 }
 
 /* ==========================================================

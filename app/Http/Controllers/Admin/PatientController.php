@@ -203,4 +203,49 @@ class PatientController extends Controller
 
         return response()->json($patients);
     }
+
+    
+    public function latestRefraction(Patient $patient)
+    {
+        $patient->load(['medicalRecords' => function ($query) {
+            $query->with('dokter')->latest('tanggal_kunjungan')->take(5);
+        }]);
+
+        $latest = $patient->medicalRecords->first();
+
+        $history = $patient->medicalRecords->map(function ($rm) {
+            return [
+                'id' => $rm->id,
+                'tanggal_kunjungan' => $rm->tanggal_kunjungan->format('d M Y'),
+                'dokter' => $rm->dokter->name ?? '-',
+                'keluhan' => $rm->keluhan,
+                'od_sph' => $rm->od_sph,
+                'od_cyl' => $rm->od_cyl,
+                'od_axis' => $rm->od_axis,
+                'od_add' => $rm->od_add,
+                'od_pd' => $rm->od_pd,
+                'os_sph' => $rm->os_sph,
+                'os_cyl' => $rm->os_cyl,
+                'os_axis' => $rm->os_axis,
+                'os_add' => $rm->os_add,
+                'os_pd' => $rm->os_pd,
+            ];
+        });
+
+        return response()->json([
+            // Backward compatibility: refraksi terakhir
+            'od_sph' => $latest?->od_sph,
+            'od_cyl' => $latest?->od_cyl,
+            'od_axis' => $latest?->od_axis,
+            'od_add' => $latest?->od_add,
+            'od_mpd' => $latest?->od_pd, // Asumsi mpd = pd
+            'os_sph' => $latest?->os_sph,
+            'os_cyl' => $latest?->os_cyl,
+            'os_axis' => $latest?->os_axis,
+            'os_add' => $latest?->os_add,
+            'os_mpd' => $latest?->os_pd,
+            // Histori lengkap
+            'history' => $history,
+        ]);
+    }
 }
