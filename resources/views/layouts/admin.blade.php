@@ -135,10 +135,31 @@
 
     <div class="nav-section">Toko</div>
 
-    <a href="{{ route('transactions.create') }}"
-       class="nav-link {{ request()->routeIs('transactions.create') ? 'active' : '' }}">
-        <i class="bi bi-cart-plus"></i> POS / Kasir
+    <!-- Parent Menu -->
+    <a class="nav-link d-flex justify-content-between align-items-center"
+    data-bs-toggle="collapse"
+    href="#posMenu"
+    role="button"
+    aria-expanded="{{ request()->routeIs('transactions.*') ? 'true' : 'false' }}"
+    >
+        <span><i class="bi bi-cart-plus"></i> POS / Kasir</span>
+        <i class="bi bi-chevron-down"></i>
     </a>
+
+    <!-- Sub Menu -->
+    <div class="collapse {{ request()->routeIs('transactions.*') ? 'show' : '' }}" id="posMenu">
+        
+        <a href="{{ route('transactions.create') }}"
+        class="nav-link ms-3 {{ request()->routeIs('transactions.create') ? 'active' : '' }}">
+            <i class="bi bi-plus-circle"></i> Create Transaksi
+        </a>
+
+        <a href="{{ route('pickup.index') }}"
+        class="nav-link ms-3 {{ request()->routeIs('pickup.index') ? 'active' : '' }}">
+            <i class="bi bi-eyeglasses"></i> Pengambilan Kacamata
+        </a>
+
+    </div>
 
     <a href="{{ route('transactions.index') }}"
        class="nav-link {{ request()->routeIs('transactions.index','transactions.show') ? 'active' : '' }}">

@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\TransactionController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\PickupController;
 
 Route::get('/', fn() => redirect()->route('dashboard'));
 
@@ -59,6 +60,12 @@ Route::middleware(['auth'])->group(function () {
             Route::get('transactions/pos/patient-autocomplete', [TransactionController::class, 'patientAutocomplete'])->name('patients.autocomplete');
             Route::get('transactions/pos/frame-autocomplete', [TransactionController::class, 'frameAutocomplete'])->name('products.frame.autocomplete');
             // ---------------------------
+
+            // Pickup Transaction
+            Route::get('transactions/pickup', [PickupController::class, 'index'])->name('pickup.index');
+            Route::get('transactions/pickup/{transaction}', [PickupController::class, 'pickupShow'])->name('pickup.show');
+            Route::post('/pickup/{transaction}/pay', [PickupController::class, 'store'])->name('pickup.store');
+            Route::patch('/pickup/{transaction}/confirm', [PickupController::class, 'confirm'])->name('pickup.confirm');
     
             Route::get('transactions/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
         }
