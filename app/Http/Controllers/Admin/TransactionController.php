@@ -268,13 +268,17 @@ class TransactionController extends Controller
             $patient = null;
             if ($request->patient_id) {
                 $patient = Patient::find($request->patient_id);
-                if ($patient) {
+                // Only update if nama is provided, otherwise keep existing patient but don't crash
+                // or if name is cleared, treat as UMUM
+                if ($patient && $request->nama) {
                     $patient->update([
                         'nama' => $request->nama,
                         'no_bpjs' => $request->no_bpjs,
                         'no_hp' => $request->telp,
                         'alamat' => $request->alamat,
                     ]);
+                } elseif (!$request->nama) {
+                    $patient = null; // Treat as UMUM if name is cleared
                 }
             } elseif ($request->nama) {
                 // Try to find if exists
@@ -360,39 +364,80 @@ class TransactionController extends Controller
                 $trx = Transaction::findOrFail($request->id);
                 $trx->update($data);
                 $msg = 'Transaksi berhasil diupdate';
+                
+                // For update, we might want to restore old stock before applying new ones
+                // but for POS simplicity, we'll just handle the items clear/create
+                foreach ($trx->items as $oldItem) {
+                    if ($oldItem->product) {
+                        $oldItem->product->increment('stok', $oldItem->qty);
+                    }
+                }
             } else {
-                // Create
-                $data['no_transaksi'] = Transaction::generateNomor();
-                $trx = Transaction::create($data);
+                // Create with retry logic for duplicate numbers
+                $maxRetries = 5;
+                $retryCount = 0;
+                $trx = null;
+
+                while ($retryCount < $maxRetries) {
+                    try {
+                        $data['no_transaksi'] = Transaction::generateNomor();
+                        $trx = Transaction::create($data);
+                        break;
+                    } catch (\Illuminate\Database\QueryException $e) {
+                        if ($e->errorInfo[1] == 1062) { // Duplicate entry
+                            $retryCount++;
+                            if ($retryCount >= $maxRetries) throw $e;
+                            usleep(100000); // Wait 100ms before retry
+                        } else {
+                            throw $e;
+                        }
+                    }
+                }
                 $msg = 'Transaksi berhasil disimpan';
             }
 
-            // Product / Items updating (from cart_data) - fallback to kode_frame list
+            // Product / Items updating (from cart_data)
             $trx->items()->delete();
 
             $cartData = json_decode($request->cart_data, true) ?: [];
             if (is_array($cartData) && count($cartData) > 0) {
                 foreach ($cartData as $item) {
-                    if (empty($item['kode']))
-                        continue;
-                    $product = Product::where('kode_produk', $item['kode'])->first();
+                    if (empty($item['kode'])) continue;
+                    
+                    $product = Product::where('kode_produk', $item['kode'])->lockForUpdate()->first();
+                    $qty = max(1, intval($item['qty'] ?? 1));
+                    
+                    if ($product) {
+                        if ($product->stok < $qty) {
+                            throw new \Exception("Stok produk '{$product->nama}' tidak mencukupi (Tersisa: {$product->stok})");
+                        }
+                        $product->decrement('stok', $qty);
+                    }
+
                     $trx->items()->create([
                         'product_id' => $product ? $product->id : null,
                         'nama_produk' => $item['nama'] ?? ($product->nama ?? 'Unknown'),
-                        'qty' => max(1, intval($item['qty'] ?? 1)),
+                        'qty' => $qty,
                         'harga_satuan' => floatval($item['harga'] ?? 0),
-                        'subtotal' => floatval($item['harga'] ?? 0) * max(1, intval($item['qty'] ?? 1))
+                        'subtotal' => floatval($item['harga'] ?? 0) * $qty
                     ]);
                 }
             } else {
+                // Fallback to single frame/product if cart is empty
                 $kodeFrames = is_array($request->kode_frame) ? $request->kode_frame : [$request->kode_frame];
                 foreach ($kodeFrames as $idx => $kode) {
-                    if (!$kode)
-                        continue;
-                    $product = Product::where('kode_produk', $kode)->first();
+                    if (!$kode) continue;
+                    $product = Product::where('kode_produk', $kode)->lockForUpdate()->first();
+                    if ($product) {
+                        if ($product->stok < 1) {
+                            throw new \Exception("Stok frame '{$product->nama}' habis.");
+                        }
+                        $product->decrement('stok', 1);
+                    }
+                    
                     $trx->items()->create([
-                        'product_id' => $product->id,
-                        'nama_produk' => $product->nama,
+                        'product_id' => $product ? $product->id : null,
+                        'nama_produk' => $product ? $product->nama : 'Frame/Produk',
                         'qty' => 1,
                         'harga_satuan' => $request->harga_jual,
                         'subtotal' => $request->harga_jual

@@ -2102,6 +2102,16 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCartInline();
 });
 
+// Listener to clear patient_id if name is cleared manually
+document.getElementById('nama_pasien').addEventListener('input', function() {
+    if (this.value.trim() === '') {
+        document.getElementById('patient_id').value = '';
+        document.getElementById('patient-selected-badge').classList.add('d-none');
+        document.getElementById('btn-load-history').style.display = 'none';
+        document.getElementById('patient-history-section').classList.add('d-none');
+    }
+});
+
 // Enter key on product name → add to cart
 document.getElementById('new_item_name').addEventListener('keydown', function (e) {
     if (e.key === 'Enter') { e.preventDefault(); addItemToCart(); }

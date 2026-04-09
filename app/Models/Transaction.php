@@ -14,14 +14,32 @@ class Transaction extends Model
         'no_transaksi', 'patient_id', 'user_id', 'medical_record_id',
         'total_harga', 'diskon_persen', 'diskon_nominal', 'potongan_bpjs', 'total_bayar',
         'bayar', 'kembalian', 'metode_bayar', 'status', 'catatan',
+
+        // Extra fields
+        'tgl_order', 'no_legalisasi', 'tgl_legalisasi', 'tgl_faset', 'lab', 'tempat_faset',
+        'tgl_datang_faset', 'tgl_selesai_faset', 'tgl_selesai_janji',
+        'od_sph', 'od_cyl', 'od_axis', 'od_add', 'od_mpd',
+        'os_sph', 'os_cyl', 'os_axis', 'os_add', 'os_mpd',
+        'no_bpjs', 'nama_pasien', 'alamat_pasien', 'telp_pasien', 'asal_resep',
+        'lensa', 'kode_frame', 'nama_produk', 'keterangan_frame', 'seri', 'warna', 'typefaktur', 'diambil',
+        'harga_jual', 'dp', 'potongan', 'sisa',
     ];
 
     // Auto-generate nomor transaksi
     public static function generateNomor(): string
     {
         $prefix = 'TRX' . date('Ymd');
-        $last = static::where('no_transaksi', 'like', $prefix . '%')->latest('id')->first();
-        $num = $last ? ((int)substr($last->no_transaksi, -4)) + 1 : 1;
+        // Using withTrashed to ensure we don't duplicate numbers even with soft-deleted records
+        $last = static::withTrashed()->where('no_transaksi', 'like', $prefix . '%')
+            ->orderBy('no_transaksi', 'desc')
+            ->first();
+            
+        $num = 1;
+        if ($last) {
+            $lastNum = (int)substr($last->no_transaksi, -4);
+            $num = $lastNum + 1;
+        }
+        
         return $prefix . str_pad($num, 4, '0', STR_PAD_LEFT);
     }
 
