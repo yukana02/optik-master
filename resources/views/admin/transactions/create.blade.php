@@ -429,16 +429,7 @@
                     <span id="display-step-label">Step 1: Transaksi</span>
                 </div>
                 <div class="d-flex flex-wrap gap-2">
-                    <button type="button" class="btn btn-action btn-light border shadow-sm" onclick="navTransaction('awal')"><i class="bi bi-chevron-bar-left"></i> Awal</button>
-                    <button type="button" class="btn btn-action btn-light border shadow-sm" onclick="navTransaction('sebelum')"><i class="bi bi-chevron-left"></i></button>
-                    <button type="button" class="btn btn-action btn-light border shadow-sm" onclick="navTransaction('sesudah')"><i class="bi bi-chevron-right"></i></button>
-                    <button type="button" class="btn btn-action btn-light border shadow-sm" onclick="navTransaction('akhir')"><i class="bi bi-chevron-bar-right"></i> Akhir</button>
-                    <div class="vr mx-1 opacity-25"></div>
-                    <button type="button" class="btn btn-action btn-secondary shadow-sm"       onclick="openSearchModal()"><i class="bi bi-search"></i> Cari</button>
-                    <button type="submit"  class="btn btn-action btn-success shadow-sm" id="btn-simpan"><i class="bi bi-save"></i> Simpan</button>
-                    <button type="button" class="btn btn-action btn-primary shadow-sm"         onclick="openPrintModal()"><i class="bi bi-printer"></i> Cetak</button>
-                    <button type="button" class="btn btn-action btn-warning text-white shadow-sm" onclick="resetWizard()"><i class="bi bi-arrow-clockwise"></i> Reset</button>
-                    <button type="button" class="btn btn-action btn-danger shadow-sm"          onclick="deleteTransaction()"><i class="bi bi-trash"></i> Hapus</button>
+                    <button type="button" class="btn btn-action btn-secondary shadow-sm" onclick="openSearchModal()"><i class="bi bi-search"></i> Cari</button>
                 </div>
             </div>
 
@@ -1008,9 +999,6 @@
                         <button type="submit" class="btn btn-action btn-success shadow-sm px-4" id="btn-simpan">
                             <i class="bi bi-save"></i> Simpan Transaksi
                         </button>
-                        <button type="button" class="btn btn-action btn-primary shadow-sm" onclick="openPrintModal()">
-                            <i class="bi bi-printer"></i> Cetak
-                        </button>
                     </div>
                 </div>
             </div>
@@ -1037,10 +1025,13 @@
                 <div class="table-responsive rounded-3 border" style="max-height: 350px;">
                     <table class="table table-hover align-middle mb-0" id="searchTable">
                         <thead class="table-light sticky-top">
-                            <tr><th>Tgl</th><th>No Faktur</th><th>Pasien</th><th class="text-end">Total</th></tr>
+                            <tr><th>Tgl</th><th>No Faktur</th><th>Pasien</th><th class="text-end">Total</th><th>Aksi</th></tr>
                         </thead>
                         <tbody></tbody>
                     </table>
+                </div>
+                <div class="d-flex justify-content-center mt-3" id="searchPagination">
+                    <!-- Pagination will be inserted here -->
                 </div>
             </div>
         </div>
@@ -1961,40 +1952,106 @@ const searchModalEl = new bootstrap.Modal(document.getElementById('searchModal')
 
 function openSearchModal() {
     searchModalEl.show();
-    loadSearchData('');
+    loadSearchData('', 1);
     setTimeout(() => document.getElementById('modalSearchInput').focus(), 300);
 }
 
 let searchTimer;
 document.getElementById('modalSearchInput').addEventListener('input', function () {
     clearTimeout(searchTimer);
-    searchTimer = setTimeout(() => loadSearchData(this.value), 300);
+    searchTimer = setTimeout(() => loadSearchData(this.value, 1), 300);
 });
 
-function loadSearchData(q) {
+function loadSearchData(q, page = 1) {
     const tbody = document.querySelector('#searchTable tbody');
-    tbody.innerHTML = '<tr><td colspan="4" class="text-center py-3"><div class="spinner-border text-primary spinner-border-sm"></div></td></tr>';
-    fetch(`{{ route('transactions.pos.search') }}?q=${encodeURIComponent(q)}`)
+    const paginationEl = document.getElementById('searchPagination');
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-3"><div class="spinner-border text-primary spinner-border-sm"></div></td></tr>';
+    paginationEl.innerHTML = '';
+    fetch(`{{ route('transactions.pos.search') }}?q=${encodeURIComponent(q)}&page=${page}`)
         .then(r => r.json())
         .then(data => {
-            if (!data.length) {
-                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted small py-3">Tidak ada data</td></tr>';
+            if (!data.data || !data.data.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted small py-3">Tidak ada data</td></tr>';
                 return;
             }
-            tbody.innerHTML = data.map(d => `
-                <tr style="cursor:pointer" onclick="selectTrx(${d.id})">
+            tbody.innerHTML = data.data.map(d => `
+                <tr>
                     <td class="small">${d.tanggal}</td>
-                    <td class="fw-bold text-primary">${d.no_transaksi}</td>
+                    <td class="fw-bold text-primary" style="cursor:pointer" onclick="selectTrx(${d.id})">${d.no_transaksi}</td>
                     <td>${d.pasien}</td>
                     <td class="text-end fw-semibold">${d.total}</td>
+                    <td>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-three-dots"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#" onclick="printTrx(${d.id})"><i class="bi bi-printer me-2"></i>Cetak</a></li>
+                                <li><a class="dropdown-item text-danger" href="#" onclick="deleteTrx(${d.id})"><i class="bi bi-trash me-2"></i>Hapus</a></li>
+                            </ul>
+                        </div>
+                    </td>
                 </tr>
             `).join('');
+            // Render pagination
+            if (data.last_page > 1) {
+                let paginationHtml = '<nav><ul class="pagination pagination-sm justify-content-center">';
+                if (data.current_page > 1) {
+                    paginationHtml += `<li class="page-item"><a class="page-link" href="#" onclick="loadSearchData('${q}', ${data.current_page - 1})">«</a></li>`;
+                }
+                for (let i = Math.max(1, data.current_page - 2); i <= Math.min(data.last_page, data.current_page + 2); i++) {
+                    paginationHtml += `<li class="page-item ${i === data.current_page ? 'active' : ''}"><a class="page-link" href="#" onclick="loadSearchData('${q}', ${i})">${i}</a></li>`;
+                }
+                if (data.current_page < data.last_page) {
+                    paginationHtml += `<li class="page-item"><a class="page-link" href="#" onclick="loadSearchData('${q}', ${data.current_page + 1})">»</a></li>`;
+                }
+                paginationHtml += '</ul></nav>';
+                paginationEl.innerHTML = paginationHtml;
+            }
         });
 }
 
 function selectTrx(id) {
     searchModalEl.hide();
     window.location.href = `{{ url('admin/transactions') }}/${id}`;
+}
+
+function printTrx(id) {
+    // Set temporary trx_id for printing
+    const originalId = document.getElementById('trx_id').value;
+    document.getElementById('trx_id').value = id;
+    openPrintModal();
+    // Restore after modal closes
+    setTimeout(() => document.getElementById('trx_id').value = originalId, 1000);
+}
+
+function deleteTrx(id) {
+    Swal.fire({
+        title: 'Hapus Transaksi?',
+        text: 'Data transaksi akan dihapus permanen.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Ya, Hapus',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`{{ route('transactions.pos.delete', ':id') }}`.replace(':id', id), {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            }).then(r => r.json()).then(data => {
+                if (data.success) {
+                    toast('success', 'Transaksi berhasil dihapus');
+                    loadSearchData(document.getElementById('modalSearchInput').value, 1); // Reload current page
+                } else {
+                    toast('error', 'Gagal menghapus transaksi');
+                }
+            });
+        }
+    });
 }
 
 /* ==========================================================
@@ -2049,5 +2106,90 @@ document.addEventListener('DOMContentLoaded', () => {
 document.getElementById('new_item_name').addEventListener('keydown', function (e) {
     if (e.key === 'Enter') { e.preventDefault(); addItemToCart(); }
 });
+
+// Handle form submit
+document.getElementById('pos-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const submitBtn = document.getElementById('btn-simpan');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Menyimpan...';
+
+    fetch(this.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(r => r.json())
+    .then(data => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="bi bi-save"></i> Simpan Transaksi';
+        if (data.status === 'success') {
+            Swal.fire({
+                title: 'Data sudah tersimpan!',
+                text: data.message,
+                icon: 'success',
+                showCancelButton: true,
+                showConfirmButton: true,
+                confirmButtonText: 'Buat Pesanan Baru',
+                cancelButtonText: 'Lihat Riwayat',
+                footer: '<button id="btn-edit" class="btn btn-secondary me-2">Edit Pesanan</button><button id="btn-print" class="btn btn-primary">Print</button>',
+                allowOutsideClick: false,
+                customClass: {
+                    confirmButton: 'btn btn-success me-2',
+                    cancelButton: 'btn btn-outline-primary'
+                },
+                buttonsStyling: false,
+                didOpen: () => {
+                    document.getElementById('btn-edit').addEventListener('click', () => {
+                        Swal.close();
+                        window.location.href = `{{ url('admin/transactions') }}/${data.data.id}`;
+                    });
+                    document.getElementById('btn-print').addEventListener('click', () => {
+                        Swal.close();
+                        openPrintModal();
+                    });
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Buat Pesanan Baru
+                    resetForm();
+                } else if (result.dismiss === Swal.DismissReason.cancel) {
+                    // Lihat Riwayat
+                    window.location.href = '{{ route("transactions.index") }}';
+                }
+            });
+            // Set trx_id for print
+            document.getElementById('trx_id').value = data.data.id;
+        } else {
+            toast('error', 'Gagal menyimpan', data.message);
+        }
+    })
+    .catch(err => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="bi bi-save"></i> Simpan Transaksi';
+        toast('error', 'Error', 'Terjadi kesalahan saat menyimpan');
+    });
+});
+
+function resetForm() {
+    // Reset form
+    document.getElementById('pos-form').reset();
+    // Reset hidden fields
+    document.getElementById('trx_id').value = '';
+    document.getElementById('patient_id').value = '';
+    document.getElementById('cart_data').value = '[]';
+    // Reset UI
+    goStep(1);
+    updateStepUI(1);
+    calculateSisa();
+    renderCartInline();
+    // Clear patient badge
+    document.getElementById('patient-selected-badge').classList.add('d-none');
+    // Generate new no transaksi
+    document.getElementById('no_transaksi').value = '{{ \App\Models\Transaction::generateNomor() }}';
+}
 </script>
 @endpush

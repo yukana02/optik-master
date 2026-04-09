@@ -229,7 +229,7 @@ class TransactionController extends Controller
     public function posSearch(Request $request)
     {
         $q = $request->q;
-        $query = Transaction::with('patient')->latest()->take(20);
+        $query = Transaction::with('patient')->latest();
 
         if ($q) {
             $query->where('no_transaksi', 'like', "%{$q}%")
@@ -239,7 +239,7 @@ class TransactionController extends Controller
                 });
         }
 
-        $transactions = $query->get()->map(function ($t) {
+        $transactions = $query->paginate(10)->through(function ($t) {
             return [
                 'id' => $t->id,
                 'no_transaksi' => $t->no_transaksi,
