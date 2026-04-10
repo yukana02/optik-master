@@ -801,25 +801,6 @@
                                     <i class="bi bi-box-seam"></i> Tambah Produk
                                 </h6>
 
-                                {{-- Shortcut tipe produk --}}
-                                <div class="product-type-tabs" id="productTypeTabs">
-                                    <button type="button" class="ptype-btn active-frame" data-type="Frame" onclick="setProductType('Frame')">
-                                        <i class="bi bi-eyeglasses me-1"></i> Frame
-                                    </button>
-                                    <button type="button" class="ptype-btn" data-type="Lensa" onclick="setProductType('Lensa')">
-                                        <i class="bi bi-circle me-1"></i> Lensa
-                                    </button>
-                                    <button type="button" class="ptype-btn" data-type="Aksesoris" onclick="setProductType('Aksesoris')">
-                                        Aksesoris
-                                    </button>
-                                    <button type="button" class="ptype-btn" data-type="Jasa" onclick="setProductType('Jasa')">
-                                        Jasa
-                                    </button>
-                                    <button type="button" class="ptype-btn" data-type="Lainnya" onclick="setProductType('Lainnya')">
-                                        Lainnya
-                                    </button>
-                                </div>
-
                                 <input type="hidden" id="new_item_type" value="Frame">
 
                                 <div id="product-entry">
@@ -1364,22 +1345,6 @@ function clearProductSearch() {
 }
 
 /* ==========================================================
-   PRODUCT TYPE SELECTOR
-========================================================== */
-function setProductType(type) {
-    document.getElementById('new_item_type').value = type;
-    document.querySelectorAll('.ptype-btn').forEach(btn => {
-        btn.classList.remove('active-frame', 'active-lensa', 'active-other');
-        if (btn.dataset.type === type) {
-            if (type === 'Frame')  btn.classList.add('active-frame');
-            else if (type === 'Lensa') btn.classList.add('active-lensa');
-            else btn.classList.add('active-other');
-        }
-    });
-    document.getElementById('new_item_name').focus();
-}
-
-/* ==========================================================
    CART
 ========================================================== */
 let cart = [];
@@ -1392,37 +1357,38 @@ function getCartTypeBadge(type) {
 
 function renderCartInline() {
     const body     = document.getElementById('cart-inline-body');
-    const emptyMsg = document.getElementById('cart-empty-msg');
     const totalSec = document.getElementById('cart-total-section');
     const badge    = document.getElementById('cart-count-badge');
 
     const totalQty = cart.reduce((s, i) => s + i.qty, 0);
     badge.textContent = totalQty;
 
+    body.innerHTML = '';
+
     if (cart.length === 0) {
-        body.innerHTML = '';
-        if (emptyMsg instanceof Node) {
-            body.appendChild(emptyMsg);
-        }
+        body.innerHTML = `
+            <div class="cart-empty">
+                <i class="bi bi-cart-x d-block mb-2" style="font-size:2rem"></i>
+                Keranjang kosong<br>
+                <small>Tambahkan minimal 1 item</small>
+            </div>
+        `;
         totalSec.style.display = 'none';
         return;
     }
 
-    emptyMsg.style.display = 'none';
     totalSec.style.display = '';
 
-    body.innerHTML = '';
     cart.forEach((item, idx) => {
         const row = document.createElement('div');
         row.className = 'cart-item-row';
         row.innerHTML = `
             <span class="cart-type-badge ${getCartTypeBadge(item.type)}">${item.type}</span>
             <span class="cart-item-name" title="${item.nama}">${item.nama || '—'}</span>
-            <input type="number" class="cart-item-qty" value="${item.qty}" min="1" data-index="${idx}" title="Ubah qty">
+            <input type="number" class="cart-item-qty" value="${item.qty}" min="1" data-index="${idx}">
             <span class="cart-item-price">Rp ${formatRibuan(item.qty * item.harga)}</span>
-            <span class="cart-item-del" onclick="removeCartItem(${idx})" title="Hapus">✕</span>
+            <span class="cart-item-del" onclick="removeCartItem(${idx})">✕</span>
         `;
-        // Qty inline edit
         row.querySelector('.cart-item-qty').addEventListener('change', function () {
             const val = Math.max(1, parseInt(this.value) || 1);
             cart[parseInt(this.dataset.index)].qty = val;
@@ -1432,7 +1398,6 @@ function renderCartInline() {
         body.appendChild(row);
     });
 
-    // Total
     const total = cart.reduce((s, i) => s + i.qty * i.harga, 0);
     document.getElementById('cart-inline-total').textContent = 'Rp ' + formatRibuan(total);
 }
@@ -1495,13 +1460,7 @@ function addItemToCart() {
     document.getElementById('new_item_qty').value = '1';
     document.getElementById('ac_produk_new').value = '';
     document.querySelector('input[name="product_id[]"]').value = '';
-
-    // Auto-switch type ke Lensa jika sebelumnya Frame (ux flow cepat)
-    if (type === 'Frame' && !cart.some(i => i.type === 'Lensa')) {
-        setProductType('Lensa');
-    } else {
-        document.getElementById('new_item_name').focus();
-    }
+    document.getElementById('new_item_name').focus();
 }
 
 function removeCartItem(idx) {
