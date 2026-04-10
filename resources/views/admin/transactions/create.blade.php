@@ -415,6 +415,8 @@
     <div class="col-12">
         <form action="{{ route('transactions.pos.save') }}" method="POST" id="pos-form">
             @csrf
+            <input type="hidden" name="transaction_data" id="transaction_data" value="">
+            
             <input type="hidden" name="id"        id="trx_id">
             <input type="hidden" name="patient_id" id="patient_id">
             <input type="hidden" name="cart_data"  id="cart_data" value="[]">
@@ -2074,16 +2076,98 @@ document.getElementById('pos-form').addEventListener('submit', function (e) {
             return;
         }
     }
+
+    // =============================================
+    // BUILD NESTED JSON STRUCTURE
+    // =============================================
+    const nested = {
+        patient: {
+            id: document.getElementById('patient_id').value || null,
+            nama: document.getElementById('nama_pasien').value || null,
+            telp: document.querySelector('input[name="telp"]')?.value || null,
+            alamat: document.querySelector('textarea[name="alamat"]')?.value || null,
+            no_bpjs: document.getElementById('no_bpjs')?.value || null,
+        },
+        transaksi: {
+            no_transaksi: document.getElementById('no_transaksi').value,
+            tgl_faktur: document.getElementById('tgl_faktur').value,
+            tgl_order: document.querySelector('input[name="tgl_order"]')?.value,
+            tipe_faktur: parseInt(document.querySelector('input[name="typefaktur"]:checked')?.value || 1),
+            diambil: parseInt(document.querySelector('input[name="diambil"]:checked')?.value || 2),
+        },
+        resep: {
+            asal: document.getElementById('nama_dokter')?.value || null,
+            dokter: document.getElementById('doctor_id')?.value || null,
+            tgl_resep: document.querySelector('input[name="tgl_resep"]')?.value || null,
+            catatan: document.querySelector('textarea[name="catatan_resep"]')?.value || null,
+            mata: {
+                od: {
+                    sph: parseFloat(document.getElementById('od_sph')?.value) || null,
+                    cyl: parseFloat(document.getElementById('od_cyl')?.value) || null,
+                    axis: parseInt(document.getElementById('od_axis')?.value) || null,
+                    add: parseFloat(document.getElementById('od_add')?.value) || null,
+                    mpd: parseFloat(document.getElementById('od_mpd')?.value) || null,
+                    prism: parseFloat(document.getElementById('od_prism')?.value) || null,
+                },
+                os: {
+                    sph: parseFloat(document.getElementById('os_sph')?.value) || null,
+                    cyl: parseFloat(document.getElementById('os_cyl')?.value) || null,
+                    axis: parseInt(document.getElementById('os_axis')?.value) || null,
+                    add: parseFloat(document.getElementById('os_add')?.value) || null,
+                    mpd: parseFloat(document.getElementById('os_mpd')?.value) || null,
+                    prism: parseFloat(document.getElementById('os_prism')?.value) || null,
+                }
+            }
+        },
+        items: cart.map(item => ({
+            type: item.type,
+            nama: item.nama,
+            seri: item.seri || null,
+            warna: item.warna || null,
+            harga: item.harga,
+            qty: item.qty,
+            product_id: item.product_id || null,
+            keterangan: item.keterangan || null,
+        })),
+        pembayaran: {
+            total: cart.reduce((sum, i) => sum + (i.harga * i.qty), 0),
+            harga_jual: parseAngka(document.getElementById('input_harga_jual').value),
+            diskon: parseAngka(document.getElementById('input_potongan').value),
+            dp: parseAngka(document.getElementById('input_dp').value),
+            sisa: parseAngka(document.getElementById('input_sisa').value),
+        },
+        jadwal: {
+            tgl_selesai_janji: document.querySelector('input[name="tgl_selesai_janji"]')?.value || null,
+            tgl_faset: document.querySelector('input[name="tgl_faset"]')?.value || null,
+            tgl_datang_faset: document.querySelector('input[name="tgl_datang_faset"]')?.value || null,
+            tgl_selesai_faset: document.querySelector('input[name="tgl_selesai_faset"]')?.value || null,
+        },
+        tambahan: {
+            lab: document.querySelector('input[name="lab"]')?.value || null,
+            tempat_faset: document.querySelector('input[name="tempat_faset"]')?.value || null,
+            no_legalisasi: document.querySelector('input[name="no_legalisasi"]')?.value || null,
+            tgl_legalisasi: document.querySelector('input[name="tgl_legalisasi"]')?.value || null,
+            catatan: document.querySelector('textarea[name="catatan"]')?.value || null,
+            lensa: document.querySelector('input[name="lensa"]')?.value || null,
+            keterangan_frame: document.querySelector('input[name="keterangan_frame"]')?.value || null,
+        }
+    };
+
+    // Set ke hidden field
+    document.getElementById('transaction_data').value = JSON.stringify(nested);
     
-    const formData = new FormData(this);
+    // Kirim juga cart_data (opsional, untuk backward compat)
+    document.getElementById('cart_data').value = JSON.stringify(cart);
+
     const submitBtn = document.getElementById('btn-simpan');
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Menyimpan...';
 
     fetch(this.action, {
         method: 'POST',
-        body: formData,
+        body: JSON.stringify({ transaction_data: nested }),
         headers: {
+            'Content-Type': 'application/json',
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
         }
     })
