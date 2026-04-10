@@ -640,10 +640,6 @@
                                         <label class="form-label">No. Telepon</label>
                                         <input type="text" name="telp" class="form-control form-control-sm" placeholder="08xx-xxxx-xxxx">
                                     </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Asal Resep / Dokter</label>
-                                        <input type="text" name="asal_resep" class="form-control form-control-sm" placeholder="dr. Nama / Klinik...">
-                                    </div>
                                     <div class="col-12">
                                         <label class="form-label">Alamat</label>
                                         <textarea name="alamat" class="form-control form-control-sm" rows="2" placeholder="Alamat pasien..."></textarea>
@@ -660,10 +656,15 @@
                                     <span class="badge-req ms-1">wajib</span>
                                 </h6>
                                 <div class="row g-3">
-                                    <div class="col-md-6">
+                                    <div class="col-md-6 position-relative">
                                         <label class="form-label">Nama Dokter / Klinik <span class="text-danger">*</span></label>
                                         <input type="text" name="nama_dokter" id="nama_dokter"
-                                            class="form-control form-control-sm" placeholder="dr. Nama Dokter...">
+                                            class="form-control form-control-sm"
+                                            placeholder="dr. Nama Dokter..." autocomplete="off">
+
+                                        <input type="hidden" name="doctor_id" id="doctor_id">
+
+                                        <div id="dd_dokter" class="ac-dropdown d-none"></div>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">Tanggal Resep</label>
@@ -1303,6 +1304,22 @@ setupAC(
         document.getElementById('btn-load-history').style.display = '';
     }
 );
+
+// Dokter Autocomplete
+setupAC(
+    document.getElementById('nama_dokter'),
+    document.getElementById('dd_dokter'),
+    '{{ route('doctors.autocomplete') }}',
+    d => `<b>${d.name}</b>`,
+    d => {
+        document.getElementById('nama_dokter').value = d.name;
+        document.getElementById('doctor_id').value = d.id;
+    }
+);
+
+document.getElementById('nama_dokter').addEventListener('input', function () {
+    document.getElementById('doctor_id').value = '';
+});
 
 function clearPatient() {
     document.getElementById('patient_id').value  = '';

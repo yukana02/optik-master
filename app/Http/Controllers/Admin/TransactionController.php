@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\{Transaction, TransactionItem, Patient, Product, MedicalRecord};
+use App\Models\{Transaction, TransactionItem, Patient, Product, MedicalRecord, User};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -50,6 +50,7 @@ class TransactionController extends Controller
 
     public function store(Request $request)
     {
+        dd($request->all());
         // Normalize string to numeric input
         $request->merge([
             'bayar' => (int) str_replace('.', '', $request->bayar),
@@ -285,6 +286,7 @@ class TransactionController extends Controller
 
     public function posSave(Request $request)
     {
+        dd($request->all());
         // Remove dots from currency
         $request->merge([
             'harga_jual' => (int) str_replace('.', '', $request->harga_jual),
@@ -521,5 +523,19 @@ class TransactionController extends Controller
             ->orWhere('merek', 'like', "%{$q}%")
             ->take(10)->get();
         return response()->json($products);
+    }
+
+    public function doctorAutocomplete(Request $request)
+    {
+        $q = $request->q;
+
+        $doctors = User::where('role', 'doctor')
+            ->where(function ($query) use ($q) {
+                $query->where('name', 'like', "%{$q}%");
+            })
+            ->limit(10)
+            ->get(['id', 'name']);
+
+        return response()->json($doctors);
     }
 }

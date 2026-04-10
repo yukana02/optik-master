@@ -137,5 +137,7 @@ class DatabaseSeeder extends Seeder
 
         // Patient Seeder with Factory
         Patient::factory()->count(100)->create();
+
+        $this->call(UserDoctorSeeder::class);
     }
 }
