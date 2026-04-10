@@ -50,7 +50,6 @@ class TransactionController extends Controller
 
     public function store(Request $request)
     {
-        dd($request->all());
         // Normalize string to numeric input
         $request->merge([
             'bayar' => (int) str_replace('.', '', $request->bayar),
@@ -286,7 +285,6 @@ class TransactionController extends Controller
 
     public function posSave(Request $request)
     {
-        dd($request->all());
         // Remove dots from currency
         $request->merge([
             'harga_jual' => (int) str_replace('.', '', $request->harga_jual),
