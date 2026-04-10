@@ -186,4 +186,75 @@
     </div>
 </div>
 
+<div class="row g-3 mt-1">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header p-3 d-flex justify-content-between align-items-center">
+                <div><i class="bi bi-bag-check text-success me-2"></i>Pesanan Mau Diambil (Hari Ini & Terlewat)</div>
+                <a href="{{ route('pickup.index') }}" class="btn btn-outline-success btn-sm">Lihat semua</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3">No. Transaksi</th>
+                            <th>Pasien</th>
+                            <th>Tgl. Pengambilan</th>
+                            <th>Produk</th>
+                            <th>Sisa Tagihan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($pesananDiambil as $trx)
+                        <tr>
+                            <td class="ps-3">
+                                <a href="{{ route('transactions.show', $trx) }}" class="text-decoration-none fw-semibold">
+                                    {{ $trx->no_transaksi }}
+                                </a>
+                            </td>
+                            <td>{{ $trx->patient->nama ?? ($trx->nama_pasien ?? 'Umum') }}</td>
+                            <td>
+                                @if($trx->tgl_selesai_janji)
+                                    @php
+                                        $isPast = \Carbon\Carbon::parse($trx->tgl_selesai_janji)->isPast();
+                                        $isToday = \Carbon\Carbon::parse($trx->tgl_selesai_janji)->isToday();
+                                    @endphp
+                                    <span class="{{ ($isPast && !$isToday) ? 'text-danger fw-bold' : 'text-success fw-bold' }}">
+                                        {{ \Carbon\Carbon::parse($trx->tgl_selesai_janji)->format('d/m/Y') }}
+                                    </span>
+                                @else
+                                    -
+                                @endif
+                            </td>
+                            <td>
+                                <ul class="mb-0 ps-3" style="font-size: 0.8rem">
+                                    @foreach($trx->items as $item)
+                                        <li>{{ $item->qty }}x {{ $item->nama_produk }}</li>
+                                    @endforeach
+                                </ul>
+                            </td>
+                            <td>
+                                @php
+                                    $harga = $trx->harga_jual ?? $trx->total_harga ?? 0;
+                                    $dp = $trx->dp ?? $trx->bayar ?? 0;
+                                    $potongan = $trx->potongan ?? $trx->diskon_nominal ?? 0;
+                                    $sisa = max(0, $harga - $potongan - $dp);
+                                @endphp
+                                @if($sisa > 0)
+                                    <span class="text-danger fw-semibold">Rp {{ number_format($sisa,0,',','.') }}</span>
+                                @else
+                                    <span class="text-success"><i class="bi bi-check2-all"></i> Lunas</span>
+                                @endif
+                            </td>
+                        </tr>
+                        @empty
+                        <tr><td colspan="5" class="text-center text-muted py-4">Tidak ada pesanan yang harus diambil hari ini</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection

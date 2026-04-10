@@ -707,6 +707,7 @@
                                                 <th>Axis</th>
                                                 <th>Add</th>
                                                 <th>MPD</th>
+                                                <th>Prism</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -717,6 +718,7 @@
                                                 <td><input type="text" name="od_axis" id="od_axis" placeholder="0"    inputmode="numeric"></td>
                                                 <td><input type="text" name="od_add"  id="od_add"  placeholder="0.00" inputmode="decimal"></td>
                                                 <td><input type="text" name="od_mpd"  id="od_mpd"  placeholder="0.0"  inputmode="decimal"></td>
+                                                <td><input type="text" name="od_prism" id="od_prism" placeholder="-"    inputmode="decimal"></td>
                                             </tr>
                                             <tr>
                                                 <td class="text-danger fw-bold">OS</td>
@@ -725,6 +727,7 @@
                                                 <td><input type="text" name="os_axis" id="os_axis" placeholder="0"    inputmode="numeric"></td>
                                                 <td><input type="text" name="os_add"  id="os_add"  placeholder="0.00" inputmode="decimal"></td>
                                                 <td><input type="text" name="os_mpd"  id="os_mpd"  placeholder="0.0"  inputmode="decimal"></td>
+                                                <td><input type="text" name="os_prism" id="os_prism" placeholder="-"    inputmode="decimal"></td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -1673,14 +1676,13 @@ function renderPatientHistory(history) {
 
 function loadFromHistory(rmId, rmData) {
     // Isi field refraksi dari histori yang dipilih
-    const fields = ['od_sph','od_cyl','od_axis','od_add','od_mpd','os_sph','os_cyl','os_axis','os_add','os_mpd'];
+    const fields = ['od_sph','od_cyl','od_axis','od_add','od_mpd', 'od_prism','os_sph','os_cyl','os_axis','os_add','os_mpd', 'os_prism'];
     fields.forEach(f => {
         const el = document.getElementById(f);
         if (el) {
-            const key = f.replace('_mpd', '_pd'); // Map mpd to pd
+            let key = f;
+            if (f.endsWith('_mpd')) key = f.replace('_mpd', '_pd'); // Map mpd to pd for history
             el.value = rmData[key] || '';
-
-            // Trigger event input agar validasi membaca ulang
             el.dispatchEvent(new Event('input', { bubbles: true }));
         }
     });
@@ -1692,7 +1694,7 @@ function loadFromHistory(rmId, rmData) {
    REFRAKSI UTILITY
 ========================================================== */
 function copyOdToOs() {
-    ['sph','cyl','axis','add','mpd'].forEach(f => {
+    ['sph','cyl','axis','add','mpd', 'prism'].forEach(f => {
         const od = document.getElementById('od_' + f);
         const os = document.getElementById('os_' + f);
         if (od && os) os.value = od.value;
@@ -1702,7 +1704,7 @@ function copyOdToOs() {
 
 // Tab key auto-advance dalam tabel refraksi
 (function setupRefractionTabAdvance() {
-    const order = ['od_sph','od_cyl','od_axis','od_add','od_mpd','os_sph','os_cyl','os_axis','os_add','os_mpd'];
+    const order = ['od_sph','od_cyl','od_axis','od_add','od_mpd','od_prism','os_sph','os_cyl','os_axis','os_add','os_mpd','os_prism'];
     order.forEach((id, idx) => {
         const el = document.getElementById(id);
         if (!el) return;
@@ -1772,7 +1774,7 @@ function fillForm(trx) {
     sv('input[name="nama_dokter"]', trx.nama_dokter || trx.asal_resep || '');
 
     // Step 2 — Refraksi
-    ['od_sph','od_cyl','od_axis','od_add','od_mpd','os_sph','os_cyl','os_axis','os_add','os_mpd'].forEach(f => {
+    ['od_sph','od_cyl','od_axis','od_add','od_mpd','od_prism','os_sph','os_cyl','os_axis','os_add','os_mpd', 'os_prism'].forEach(f => {
         const el = document.getElementById(f);
         if (el) el.value = trx[f] || '';
     });
@@ -1873,44 +1875,8 @@ function navTransaction(dir) {
 }
 
 /* ==========================================================
-   FORM SUBMIT
+   (FORM SUBMIT LISTENER MOVED TO BOTTOM)
 ========================================================== */
-document.getElementById('pos-form').addEventListener('submit', function (e) {
-    e.preventDefault();
-
-    // Final validation
-    for (let s = 1; s <= 4; s++) {
-        if (!validateStep(s)) {
-            goStep(s);
-            return;
-        }
-    }
-
-    const btn = document.getElementById('btn-simpan');
-    const oldHtml = btn.innerHTML;
-    btn.innerHTML = '<div class="spinner-border spinner-border-sm me-2"></div>Menyimpan...';
-    btn.disabled = true;
-
-    fetch(this.action, {
-        method: 'POST',
-        body: new FormData(this),
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.status === 'success') {
-            snackbar('Transaksi berhasil disimpan!', 'success');
-            if (data.data) fillForm(data.data);
-        } else {
-            Swal.fire('Oops!', data.message || 'Terjadi kesalahan.', 'error');
-        }
-    })
-    .catch(err => Swal.fire('Error', err.toString(), 'error'))
-    .finally(() => {
-        btn.innerHTML = oldHtml;
-        btn.disabled  = false;
-    });
-});
 
 /* ==========================================================
    DELETE
@@ -2017,12 +1983,8 @@ function selectTrx(id) {
 }
 
 function printTrx(id) {
-    // Set temporary trx_id for printing
-    const originalId = document.getElementById('trx_id').value;
-    document.getElementById('trx_id').value = id;
-    openPrintModal();
-    // Restore after modal closes
-    setTimeout(() => document.getElementById('trx_id').value = originalId, 1000);
+    currentPrintId = id;
+    printModalEl.show();
 }
 
 function deleteTrx(id) {
@@ -2059,24 +2021,32 @@ function deleteTrx(id) {
 ========================================================== */
 const printModalEl = new bootstrap.Modal(document.getElementById('printModal'));
 const printFrame   = document.getElementById('printFrame');
+let currentPrintId = null;
 
 function openPrintModal() {
-    const id = document.getElementById('trx_id').value;
-    if (!id) { toast('warning', 'Simpan transaksi terlebih dahulu sebelum mencetak.'); return; }
+    currentPrintId = document.getElementById('trx_id').value;
+    if (!currentPrintId) { toast('warning', 'Simpan transaksi terlebih dahulu sebelum mencetak.'); return; }
     printModalEl.show();
 }
 
 function doPrint(type) {
-    const id  = document.getElementById('trx_id').value;
-    const url = `{{ url('admin/transactions') }}/${id}?print_mode=kiosk&type=${type}`;
+    const id = currentPrintId;
+    if (!id) { toast('warning', 'Simpan transaksi terlebih dahulu sebelum mencetak.'); return; }
+    const url = `{{ url('transactions') }}/${id}/print?type=${type}`;
     printFrame.src = url;
     printFrame.onload = () => setTimeout(() => printFrame.contentWindow.print(), 500);
     printModalEl.hide();
 }
 
+// Reset currentPrintId when modal is closed
+document.getElementById('printModal').addEventListener('hidden.bs.modal', function () {
+    currentPrintId = null;
+});
+
 /* ==========================================================
    KEYBOARD SHORTCUTS
 ========================================================== */
+
 document.addEventListener('keydown', function (e) {
     // Alt+1–4 untuk pindah step
     if (e.altKey && ['1','2','3','4'].includes(e.key)) {
@@ -2117,9 +2087,18 @@ document.getElementById('new_item_name').addEventListener('keydown', function (e
     if (e.key === 'Enter') { e.preventDefault(); addItemToCart(); }
 });
 
-// Handle form submit
+// Handle form submit (WITH FINAL VALIDATION)
 document.getElementById('pos-form').addEventListener('submit', function (e) {
     e.preventDefault();
+
+    // Final validation before submit
+    for (let s = 1; s <= 4; s++) {
+        if (!validateStep(s)) {
+            goStep(s);
+            return;
+        }
+    }
+    
     const formData = new FormData(this);
     const submitBtn = document.getElementById('btn-simpan');
     submitBtn.disabled = true;

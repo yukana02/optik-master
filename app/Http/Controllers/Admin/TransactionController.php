@@ -138,8 +138,39 @@ class TransactionController extends Controller
 
     public function show(Transaction $transaction)
     {
-        $transaction->load(['patient', 'kasir', 'medicalRecord', 'items.product']);
+        $transaction->load(['patient', 'kasir', 'medicalRecord', 'items.product.category']);
         return view('admin.transactions.show', compact('transaction'));
+    }
+
+    /**
+     * Render a specialized print template.
+     * URL: /transactions/{transaction}/print?type=garansi
+     *
+     * === CARA MENAMBAHKAN TEMPLATE CETAK BARU ===
+     * 1. Buat file blade di: resources/views/admin/transactions/print/{nama}.blade.php
+     * 2. Tambahkan key baru di array $views di bawah ini.
+     * 3. Di modal Print Hub (create.blade.php), tambahkan tombol:
+     *      <button onclick="doPrint('{nama}')">Cetak {Nama}</button>
+     */
+    public function printView(Transaction $transaction, Request $request)
+    {
+        $transaction->load(['patient', 'kasir', 'medicalRecord', 'items.product.category']);
+
+        $type = $request->query('type', 'garansi');
+
+        // Daftar template — tambahkan di sini untuk template baru
+        $views = [
+            'garansi'        => 'admin.transactions.print.garansi',
+            'fasetan'        => 'admin.transactions.print.fasetan',
+            'bon_3_rangkap'  => 'admin.transactions.print.fasetan',
+            'pesanan_besar'  => 'admin.transactions.print.pesanan_besar',
+            // 'bon_1_rangkap'  => 'admin.transactions.print.bon_1_rangkap',
+        ];
+
+        $viewName = $views[$type] ?? $views['garansi'];
+        $copies = ($type === 'bon_3_rangkap') ? 3 : 1;
+
+        return view($viewName, compact('transaction', 'copies'));
     }
 
     public function cancel(Transaction $transaction)
@@ -325,11 +356,13 @@ class TransactionController extends Controller
                 'od_axis' => $request->od_axis,
                 'od_add' => $request->od_add,
                 'od_mpd' => $request->od_mpd,
+                'od_prism' => $request->od_prism,
                 'os_sph' => $request->os_sph,
                 'os_cyl' => $request->os_cyl,
                 'os_axis' => $request->os_axis,
                 'os_add' => $request->os_add,
                 'os_mpd' => $request->os_mpd,
+                'os_prism' => $request->os_prism,
 
                 'no_bpjs' => $request->no_bpjs,
                 'nama_pasien' => $request->nama,
@@ -364,7 +397,7 @@ class TransactionController extends Controller
                 $trx = Transaction::findOrFail($request->id);
                 $trx->update($data);
                 $msg = 'Transaksi berhasil diupdate';
-                
+
                 // For update, we might want to restore old stock before applying new ones
                 // but for POS simplicity, we'll just handle the items clear/create
                 foreach ($trx->items as $oldItem) {
@@ -386,7 +419,8 @@ class TransactionController extends Controller
                     } catch (\Illuminate\Database\QueryException $e) {
                         if ($e->errorInfo[1] == 1062) { // Duplicate entry
                             $retryCount++;
-                            if ($retryCount >= $maxRetries) throw $e;
+                            if ($retryCount >= $maxRetries)
+                                throw $e;
                             usleep(100000); // Wait 100ms before retry
                         } else {
                             throw $e;
@@ -402,11 +436,12 @@ class TransactionController extends Controller
             $cartData = json_decode($request->cart_data, true) ?: [];
             if (is_array($cartData) && count($cartData) > 0) {
                 foreach ($cartData as $item) {
-                    if (empty($item['kode'])) continue;
-                    
+                    if (empty($item['kode']))
+                        continue;
+
                     $product = Product::where('kode_produk', $item['kode'])->lockForUpdate()->first();
                     $qty = max(1, intval($item['qty'] ?? 1));
-                    
+
                     if ($product) {
                         if ($product->stok < $qty) {
                             throw new \Exception("Stok produk '{$product->nama}' tidak mencukupi (Tersisa: {$product->stok})");
@@ -426,7 +461,8 @@ class TransactionController extends Controller
                 // Fallback to single frame/product if cart is empty
                 $kodeFrames = is_array($request->kode_frame) ? $request->kode_frame : [$request->kode_frame];
                 foreach ($kodeFrames as $idx => $kode) {
-                    if (!$kode) continue;
+                    if (!$kode)
+                        continue;
                     $product = Product::where('kode_produk', $kode)->lockForUpdate()->first();
                     if ($product) {
                         if ($product->stok < 1) {
@@ -434,7 +470,7 @@ class TransactionController extends Controller
                         }
                         $product->decrement('stok', 1);
                     }
-                    
+
                     $trx->items()->create([
                         'product_id' => $product ? $product->id : null,
                         'nama_produk' => $product ? $product->nama : 'Frame/Produk',

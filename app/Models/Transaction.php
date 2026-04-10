@@ -18,8 +18,8 @@ class Transaction extends Model
         // Extra fields
         'tgl_order', 'no_legalisasi', 'tgl_legalisasi', 'tgl_faset', 'lab', 'tempat_faset',
         'tgl_datang_faset', 'tgl_selesai_faset', 'tgl_selesai_janji',
-        'od_sph', 'od_cyl', 'od_axis', 'od_add', 'od_mpd',
-        'os_sph', 'os_cyl', 'os_axis', 'os_add', 'os_mpd',
+        'od_sph', 'od_cyl', 'od_axis', 'od_add', 'od_mpd', 'od_prism',
+        'os_sph', 'os_cyl', 'os_axis', 'os_add', 'os_mpd', 'os_prism',
         'no_bpjs', 'nama_pasien', 'alamat_pasien', 'telp_pasien', 'asal_resep',
         'lensa', 'kode_frame', 'nama_produk', 'keterangan_frame', 'seri', 'warna', 'typefaktur', 'diambil',
         'harga_jual', 'dp', 'potongan', 'sisa',

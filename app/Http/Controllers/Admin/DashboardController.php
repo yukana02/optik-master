@@ -61,9 +61,18 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
+        // Pesanan yang harus diambil (hari ini atau terlewat dan belum diambil)
+        $pesananDiambil = Transaction::with(['patient'])
+            ->where('diambil', 2)
+            ->whereNotNull('tgl_selesai_janji')
+            ->whereDate('tgl_selesai_janji', '<=', today())
+            ->where('status', '!=', 'batal')
+            ->orderBy('tgl_selesai_janji', 'asc')
+            ->get();
+
         return view('admin.dashboard', compact(
             'totalPasien', 'totalProduk', 'transaksiHari', 'omzetHari',
-            'stokMenipis', 'grafikOmzet', 'transaksiTerbaru', 'rekamTerbaru', 'topProduk'
+            'stokMenipis', 'grafikOmzet', 'transaksiTerbaru', 'rekamTerbaru', 'topProduk', 'pesananDiambil'
         ));
     }
 }

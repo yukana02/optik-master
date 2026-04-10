@@ -67,6 +67,7 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/pickup/{transaction}/pay', [PickupController::class, 'store'])->name('pickup.store');
             Route::patch('/pickup/{transaction}/confirm', [PickupController::class, 'confirm'])->name('pickup.confirm');
     
+            Route::get('transactions/{transaction}/print', [TransactionController::class, 'printView'])->name('transactions.print');
             Route::get('transactions/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
         }
     );
