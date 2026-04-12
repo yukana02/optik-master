@@ -11,18 +11,52 @@ class Transaction extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'no_transaksi', 'patient_id', 'user_id', 'medical_record_id',
-        'total_harga', 'diskon_persen', 'diskon_nominal', 'potongan_bpjs', 'total_bayar',
-        'bayar', 'kembalian', 'metode_bayar', 'status', 'catatan',
+        // Identitas
+        'no_transaksi',
+        'patient_id',
+        'user_id',
+        'medical_record_id',
 
-        // Extra fields
-        'tgl_order', 'no_legalisasi', 'tgl_legalisasi', 'tgl_faset', 'lab', 'tempat_faset',
-        'tgl_datang_faset', 'tgl_selesai_faset', 'tgl_selesai_janji',
-        'od_sph', 'od_cyl', 'od_axis', 'od_add', 'od_mpd', 'od_prism',
-        'os_sph', 'os_cyl', 'os_axis', 'os_add', 'os_mpd', 'os_prism',
-        'no_bpjs', 'nama_pasien', 'alamat_pasien', 'telp_pasien', 'asal_resep',
-        'lensa', 'kode_frame', 'nama_produk', 'keterangan_frame', 'seri', 'warna', 'typefaktur', 'diambil',
-        'harga_jual', 'dp', 'potongan', 'sisa',
+        // Tanggal
+        'tgl_order',
+        'tgl_faktur',
+
+        // Status tambahan
+        'tipe_faktur',
+        'diambil',
+
+        // Harga
+        'total_harga',
+        'diskon_persen',
+        'diskon_nominal',
+        'total_bayar',
+
+        // DP SYSTEM
+        'dp',
+        'sisa',
+
+        // Pembayaran
+        'bayar',
+        'kembalian',
+
+        // Metode & status
+        'metode_bayar',
+        'status',
+
+        // Lainnya
+        'catatan',
+        'resep',
+        'jadwal',
+        'tambahan',
+    ];
+
+    protected $casts = [
+        'resep' => 'array',
+        'jadwal' => 'array',
+        'tambahan' => 'array',
+
+        'tgl_order' => 'date',
+        'tgl_faktur' => 'date',
     ];
 
     // Auto-generate nomor transaksi

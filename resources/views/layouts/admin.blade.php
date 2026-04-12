@@ -339,17 +339,17 @@
 
             @php
                 $pickupTodayCount = \App\Models\Transaction::where('diambil', 2)
-                    ->whereNotNull('tgl_selesai_janji')
-                    ->whereDate('tgl_selesai_janji', '<=', now()->toDateString())
+                    ->whereNotNull('jadwal->tgl_selesai_janji')
+                    ->where('jadwal->tgl_selesai_janji', '<=', now()->toDateString())
                     ->where('status', '!=', 'batal')
                     ->count();
 
                 $allPickupsNotif = \App\Models\Transaction::with('patient', 'items')
                     ->where('diambil', 2)
-                    ->whereNotNull('tgl_selesai_janji')
+                    ->whereNotNull('jadwal->tgl_selesai_janji')
                     ->where('status', '!=', 'batal')
-                    ->orderBy('tgl_selesai_janji', 'asc')
-                    ->take(15) 
+                    ->orderBy('jadwal->tgl_selesai_janji', 'asc')
+                    ->take(15)
                     ->get();
             @endphp
             <div class="d-flex align-items-center me-3 dropdown">

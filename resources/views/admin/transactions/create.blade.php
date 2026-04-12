@@ -413,7 +413,7 @@
 @section('content')
 <div class="row g-3">
     <div class="col-12">
-        <form action="{{ route('transactions.pos.save') }}" method="POST" id="pos-form">
+        <form action="{{ route('transactions.store') }}" method="POST" id="pos-form">
             @csrf
             <input type="hidden" name="transaction_data" id="transaction_data" value="">
             

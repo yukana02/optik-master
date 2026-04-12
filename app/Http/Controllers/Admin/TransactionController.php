@@ -50,86 +50,131 @@ class TransactionController extends Controller
 
     public function store(Request $request)
     {
-        // Normalize string to numeric input
-        $request->merge([
-            'bayar' => (int) str_replace('.', '', $request->bayar),
-            'diskon_nominal' => (int) str_replace('.', '', $request->diskon_nominal),
-            'potongan_bpjs' => (int) str_replace('.', '', $request->potongan_bpjs),
-        ]);
+        $data = $request->input('transaction_data');
 
-        $request->validate([
-            'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|exists:products,id',
-            'items.*.qty' => 'required|integer|min:1',
-            'items.*.harga_satuan' => 'required|numeric|min:0',
-            'metode_bayar' => 'required|in:tunai,transfer,qris,debit,kredit',
-            'bayar' => 'required|numeric|min:0',
-            'diskon_persen' => 'nullable|numeric|min:0|max:100',
-            'diskon_nominal' => 'nullable|numeric|min:0',
-            'potongan_bpjs' => 'nullable|numeric|min:0',
-        ]);
+        DB::transaction(function () use ($data) {
 
-        DB::transaction(function () use ($request) {
+            // =========================
+            // 1. PATIENT
+            // =========================
+            $patientData = $data['patient'];
+
+            $patient = Patient::updateOrCreate(
+                ['id' => $patientData['id'] ?? null],
+                [
+                    'nama' => $patientData['nama'],
+                    'telp' => $patientData['telp'] ?? null,
+                    'alamat' => $patientData['alamat'] ?? null,
+                    'no_bpjs' => $patientData['no_bpjs'] ?? null,
+                ]
+            );
+
+            // =========================
+            // 2. HITUNG TOTAL ITEM
+            // =========================
+            $items = $data['items'];
+
             $totalHarga = 0;
-            $itemsData = [];
 
-            foreach ($request->items as $item) {
-                $product = Product::lockForUpdate()->findOrFail($item['product_id']);
-
-                if ($product->stok < $item['qty']) {
-                    throw new \Exception("Stok produk '{$product->nama}' tidak mencukupi. Stok saat ini: {$product->stok}");
-                }
-
-                $subtotal = $item['harga_satuan'] * $item['qty'];
-                $totalHarga += $subtotal;
-
-                $itemsData[] = [
-                    'product_id' => $product->id,
-                    'nama_produk' => $product->nama,
-                    'qty' => $item['qty'],
-                    'harga_satuan' => $item['harga_satuan'],
-                    'diskon' => $item['diskon'] ?? 0,
-                    'subtotal' => $subtotal - ($item['diskon'] ?? 0),
-                ];
-
-                // Kurangi stok
-                $product->decrement('stok', $item['qty']);
+            foreach ($items as $item) {
+                $totalHarga += ($item['harga'] * $item['qty']);
             }
 
-            // Hitung diskon
-            $diskonPersen = $request->diskon_persen ?? 0;
-            $diskonNominal = $request->diskon_nominal ?? 0;
-            if ($diskonPersen > 0) {
-                $diskonNominal = round($totalHarga * ($diskonPersen / 100));
+            // =========================
+            // 3. DISKON
+            // =========================
+            $diskonNominal = $data['pembayaran']['diskon'] ?? 0;
+            $diskonPersen  = $totalHarga > 0
+                ? ($diskonNominal / $totalHarga) * 100
+                : 0;
+
+            $totalBayar = $totalHarga - $diskonNominal;
+
+            // =========================
+            // 4. PEMBAYARAN
+            // =========================
+            $dp    = $data['pembayaran']['dp'] ?? 0;
+            $bayar = $data['pembayaran']['bayar'] ?? 0;
+
+            // kalau ada bayar tapi tidak ada dp -> anggap langsung bayar
+            if ($dp == 0 && $bayar > 0) {
+                $dp = $bayar;
             }
 
-            $potonganBpjs = $request->potongan_bpjs ?? 0;
-            $totalBayar = $totalHarga - $diskonNominal - $potonganBpjs;
-            $kembalian = $request->bayar - $totalBayar;
+            $totalMasuk = $dp + $bayar;
 
-            // Double Protection
-            if ($request->bayar < $totalBayar) {
-                throw new \Exception('Jumlah bayar kurang dari total yang harus dibayar.');
+            $sisa = $totalBayar - $totalMasuk;
+
+            if ($sisa < 0) {
+                $kembalian = abs($sisa);
+                $sisa = 0;
+            } else {
+                $kembalian = 0;
             }
+
+            // =========================
+            // 5. STATUS
+            // =========================
+            if ($totalMasuk == 0) {
+                $status = 'unpaid';
+            } elseif ($sisa > 0) {
+                $status = 'dp';
+            } else {
+                $status = 'paid';
+            }
+
+            // =========================
+            // 6. SIMPAN TRANSACTION
+            // =========================
+            $trxData = $data['transaksi'];
 
             $transaction = Transaction::create([
-                'no_transaksi' => Transaction::generateNomor(),
-                'patient_id' => $request->patient_id ?: null,
-                'user_id' => auth()->id(),
-                'medical_record_id' => $request->medical_record_id ?: null,
-                'total_harga' => $totalHarga,
-                'diskon_persen' => $diskonPersen,
+                'no_transaksi' => $trxData['no_transaksi'],
+                'patient_id'   => $patient->id,
+                'user_id'      => auth()->id(),
+
+                'tgl_order'  => $trxData['tgl_order'],
+                'tgl_faktur' => $trxData['tgl_faktur'],
+
+                'tipe_faktur' => $trxData['tipe_faktur'] ?? null,
+                'diambil'     => $trxData['diambil'] ?? 0,
+
+                'total_harga'    => $totalHarga,
+                'diskon_persen'  => $diskonPersen,
                 'diskon_nominal' => $diskonNominal,
-                'potongan_bpjs' => $potonganBpjs,
-                'total_bayar' => $totalBayar,
-                'bayar' => $request->bayar,
-                'kembalian' => max(0, $kembalian),
-                'metode_bayar' => $request->metode_bayar,
-                'status' => 'lunas',
-                'catatan' => $request->catatan,
+                'total_bayar'    => $totalBayar,
+
+                'dp'        => $dp,
+                'sisa'      => $sisa,
+                'bayar'     => $bayar,
+                'kembalian' => $kembalian,
+
+                'metode_bayar' => $data['pembayaran']['metode'] ?? 'tunai',
+                'status'        => $status,
+
+                'catatan' => $data['tambahan']['catatan'] ?? null,
+
+                'resep'    => $data['resep'] ?? null,
+                'jadwal'   => $data['jadwal'] ?? null,
+                'tambahan' => $data['tambahan'] ?? null,
             ]);
 
-            $transaction->items()->createMany($itemsData);
+            // =========================
+            // 7. SIMPAN ITEMS
+            // =========================
+            foreach ($items as $item) {
+                TransactionItem::create([
+                    'transaction_id' => $transaction->id,
+                    'product_id' => $item['product_id'] ?? null,
+                    'nama_produk' => $item['nama'],
+                    'seri' => $item['seri'] ?? null,
+                    'warna' => $item['warna'] ?? null,
+                    'qty' => $item['qty'],
+                    'harga_satuan' => $item['harga'],
+                    'subtotal' => $item['harga'] * $item['qty'],
+                    'keterangan' => $item['keterangan'] ?? null,
+                ]);
+            }
         });
 
         return redirect()->route('transactions.index')
