@@ -20,15 +20,16 @@ class Transaction extends Model
         // Tanggal
         'tgl_order',
         'tgl_faktur',
+        'tgl_selesai_janji',
 
         // Status tambahan
-        'tipe_faktur',
+        'typefaktur',
         'diambil',
 
         // Harga
-        'total_harga',
-        'diskon_persen',
-        'diskon_nominal',
+        'harga_jual',
+        'potongan',
+        'potongan_bpjs',
         'total_bayar',
 
         // DP SYSTEM
@@ -38,12 +39,31 @@ class Transaction extends Model
         // Pembayaran
         'bayar',
         'kembalian',
+        'diskon_persen',
 
         // Metode & status
         'metode_bayar',
         'status',
 
-        // Lainnya
+        // Snapshot Pasien
+        'no_bpjs',
+        'nama_pasien',
+        'alamat_pasien',
+        'telp_pasien',
+        'asal_resep',
+
+        // Snapshot Refraksi
+        'od_sph', 'od_cyl', 'od_axis', 'od_add', 'od_mpd', 'od_prism',
+        'os_sph', 'os_cyl', 'os_axis', 'os_add', 'os_mpd', 'os_prism',
+
+        // Snapshot Product
+        'lensa', 'kode_frame', 'nama_produk', 'keterangan_frame', 'seri', 'warna',
+
+        // Snapshot Produksi Lab
+        'no_legalisasi', 'tgl_legalisasi', 'tgl_faset', 'lab', 'tempat_faset',
+        'tgl_datang_faset', 'tgl_selesai_faset',
+
+        // JSON/Extra
         'catatan',
         'resep',
         'jadwal',

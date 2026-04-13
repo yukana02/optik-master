@@ -52,69 +52,60 @@ class TransactionController extends Controller
     {
         $data = $request->input('transaction_data');
 
-        DB::transaction(function () use ($data) {
+        try {
+            DB::beginTransaction();
 
             // =========================
             // 1. PATIENT
             // =========================
-            $patientData = $data['patient'];
+            $patientData = $data['patient'] ?? [];
+            $patient = null;
 
-            $patient = Patient::updateOrCreate(
-                ['id' => $patientData['id'] ?? null],
-                [
-                    'nama' => $patientData['nama'],
-                    'telp' => $patientData['telp'] ?? null,
-                    'alamat' => $patientData['alamat'] ?? null,
-                    'no_bpjs' => $patientData['no_bpjs'] ?? null,
-                ]
-            );
-
-            // =========================
-            // 2. HITUNG TOTAL ITEM
-            // =========================
-            $items = $data['items'];
-
-            $totalHarga = 0;
-
-            foreach ($items as $item) {
-                $totalHarga += ($item['harga'] * $item['qty']);
+            if (!empty($patientData['nama'])) {
+                if (!empty($patientData['id'])) {
+                    $patient = Patient::find($patientData['id']);
+                    if ($patient) {
+                        $patient->update([
+                            'nama'    => $patientData['nama'],
+                            'telp'    => $patientData['telp'] ?? null,
+                            'alamat'  => $patientData['alamat'] ?? null,
+                            'no_bpjs' => $patientData['no_bpjs'] ?? null,
+                        ]);
+                    }
+                }
+                
+                if (!$patient) {
+                    $patient = Patient::create([
+                        'no_rm'   => Patient::generateNoRM(),
+                        'nama'    => $patientData['nama'],
+                        'telp'    => $patientData['telp'] ?? null,
+                        'alamat'  => $patientData['alamat'] ?? null,
+                        'no_bpjs' => $patientData['no_bpjs'] ?? null,
+                    ]);
+                }
             }
 
             // =========================
-            // 3. DISKON
+            // 2. PEMBAYARAN & STATUS
             // =========================
-            $diskonNominal = $data['pembayaran']['diskon'] ?? 0;
-            $diskonPersen  = $totalHarga > 0
-                ? ($diskonNominal / $totalHarga) * 100
-                : 0;
-
-            $totalBayar = $totalHarga - $diskonNominal;
-
-            // =========================
-            // 4. PEMBAYARAN
-            // =========================
-            $dp    = $data['pembayaran']['dp'] ?? 0;
-            $bayar = $data['pembayaran']['bayar'] ?? 0;
-
-            // kalau ada bayar tapi tidak ada dp -> anggap langsung bayar
-            if ($dp == 0 && $bayar > 0) {
-                $dp = $bayar;
-            }
-
+            $pembayaran = $data['pembayaran'] ?? [];
+            $hargaJual = $pembayaran['harga_jual'] ?? 0;
+            $potongan = $pembayaran['diskon'] ?? 0;
+            $dp = $pembayaran['dp'] ?? 0;
+            $sisa = $pembayaran['sisa'] ?? 0;
+            $bayar = $pembayaran['bayar'] ?? 0; // Legacy
+            if ($dp == 0 && $bayar > 0) $dp = $bayar; // Legacy support
+            
+            $totalBayar = max(0, $hargaJual - $potongan);
             $totalMasuk = $dp + $bayar;
-
-            $sisa = $totalBayar - $totalMasuk;
-
+            
+            $kembalian = 0;
             if ($sisa < 0) {
                 $kembalian = abs($sisa);
                 $sisa = 0;
-            } else {
-                $kembalian = 0;
             }
 
-            // =========================
-            // 5. STATUS
-            // =========================
+            $status = 'pending';
             if ($totalMasuk == 0) {
                 $status = 'unpaid';
             } elseif ($sisa > 0) {
@@ -124,61 +115,133 @@ class TransactionController extends Controller
             }
 
             // =========================
-            // 6. SIMPAN TRANSACTION
+            // 3. PRODUCT SNAPSHOT (First Item)
             // =========================
-            $trxData = $data['transaksi'];
+            $items = $data['items'] ?? [];
+            $lensa = null;
+            $frame = null;
+            foreach ($items as $item) {
+                $type = strtolower($item['type'] ?? '');
+                if ($type == 'lensa' || str_contains(strtolower($item['nama']), 'lensa')) {
+                    if (!$lensa) $lensa = $item['nama'];
+                } elseif ($type == 'frame' || str_contains(strtolower($item['nama']), 'frame')) {
+                    if (!$frame) $frame = $item['nama'];
+                }
+            }
+            if (!$lensa) $lensa = $data['tambahan']['lensa'] ?? null;
+
+            // =========================
+            // 4. SIMPAN TRANSACTION
+            // =========================
+            $trxData = $data['transaksi'] ?? [];
+            $resep = $data['resep'] ?? [];
+            $mata = $resep['mata'] ?? [];
+            $jadwal = $data['jadwal'] ?? [];
+            $tambahan = $data['tambahan'] ?? [];
 
             $transaction = Transaction::create([
+                // Identifier
                 'no_transaksi' => $trxData['no_transaksi'],
-                'patient_id'   => $patient->id,
+                'patient_id'   => $patient ? $patient->id : null,
                 'user_id'      => auth()->id(),
+                
+                // Dates
+                'tgl_order'         => $trxData['tgl_order'] ?? date('Y-m-d'),
+                'tgl_faktur'        => $trxData['tgl_faktur'] ?? date('Y-m-d'),
+                'tgl_selesai_janji' => $jadwal['tgl_selesai_janji'] ?? null,
 
-                'tgl_order'  => $trxData['tgl_order'],
-                'tgl_faktur' => $trxData['tgl_faktur'],
+                // Status
+                'typefaktur' => $trxData['tipe_faktur'] ?? 1,
+                'diambil'    => $trxData['diambil'] ?? 2,
+                'status'     => $status,
 
-                'tipe_faktur' => $trxData['tipe_faktur'] ?? null,
-                'diambil'     => $trxData['diambil'] ?? 0,
+                // Money
+                'harga_jual'  => $hargaJual,
+                'potongan'    => $potongan,
+                'total_bayar' => $totalBayar,
+                'dp'          => $dp,
+                'sisa'        => $sisa,
+                'kembalian'   => $kembalian,
 
-                'total_harga'    => $totalHarga,
-                'diskon_persen'  => $diskonPersen,
-                'diskon_nominal' => $diskonNominal,
-                'total_bayar'    => $totalBayar,
+                // Snapshot Patient
+                'nama_pasien'   => $patientData['nama'] ?? null,
+                'no_bpjs'       => $patientData['no_bpjs'] ?? null,
+                'telp_pasien'   => $patientData['telp'] ?? null,
+                'alamat_pasien' => $patientData['alamat'] ?? null,
+                'asal_resep'    => $resep['asal'] ?? null,
 
-                'dp'        => $dp,
-                'sisa'      => $sisa,
-                'bayar'     => $bayar,
-                'kembalian' => $kembalian,
+                // Snapshot Refraksi
+                'od_sph'   => $mata['od']['sph'] ?? null,
+                'od_cyl'   => $mata['od']['cyl'] ?? null,
+                'od_axis'  => $mata['od']['axis'] ?? null,
+                'od_add'   => $mata['od']['add'] ?? null,
+                'od_mpd'   => $mata['od']['mpd'] ?? null,
+                'od_prism' => $mata['od']['prism'] ?? null,
+                'os_sph'   => $mata['os']['sph'] ?? null,
+                'os_cyl'   => $mata['os']['cyl'] ?? null,
+                'os_axis'  => $mata['os']['axis'] ?? null,
+                'os_add'   => $mata['os']['add'] ?? null,
+                'os_mpd'   => $mata['os']['mpd'] ?? null,
+                'os_prism' => $mata['os']['prism'] ?? null,
 
-                'metode_bayar' => $data['pembayaran']['metode'] ?? 'tunai',
-                'status'        => $status,
+                // Snapshot Product Info
+                'lensa'            => $lensa,
+                'nama_produk'      => $frame,
+                'keterangan_frame' => $tambahan['keterangan_frame'] ?? null,
 
-                'catatan' => $data['tambahan']['catatan'] ?? null,
+                // Lab & Production
+                'no_legalisasi'     => $tambahan['no_legalisasi'] ?? null,
+                'tgl_legalisasi'    => $tambahan['tgl_legalisasi'] ?? null,
+                'lab'               => $tambahan['lab'] ?? null,
+                'tempat_faset'      => $tambahan['tempat_faset'] ?? null,
+                'tgl_faset'         => $jadwal['tgl_faset'] ?? null,
+                'tgl_datang_faset'  => $jadwal['tgl_datang_faset'] ?? null,
+                'tgl_selesai_faset' => $jadwal['tgl_selesai_faset'] ?? null,
 
-                'resep'    => $data['resep'] ?? null,
-                'jadwal'   => $data['jadwal'] ?? null,
-                'tambahan' => $data['tambahan'] ?? null,
+                // Extra Data
+                'catatan' => $tambahan['catatan'] ?? null,
+                'resep'   => $resep, // Store raw JSON just in case
             ]);
 
             // =========================
-            // 7. SIMPAN ITEMS
+            // 5. SIMPAN ITEMS
             // =========================
             foreach ($items as $item) {
+                // Deduct Stoks
+                if (!empty($item['product_id'])) {
+                    $product = Product::lockForUpdate()->find($item['product_id']);
+                    if ($product && $product->stok > 0) {
+                        $product->decrement('stok', $item['qty']);
+                    }
+                }
+
                 TransactionItem::create([
                     'transaction_id' => $transaction->id,
-                    'product_id' => $item['product_id'] ?? null,
-                    'nama_produk' => $item['nama'],
-                    'seri' => $item['seri'] ?? null,
-                    'warna' => $item['warna'] ?? null,
-                    'qty' => $item['qty'],
-                    'harga_satuan' => $item['harga'],
-                    'subtotal' => $item['harga'] * $item['qty'],
-                    'keterangan' => $item['keterangan'] ?? null,
+                    'product_id'     => $item['product_id'] ?? null,
+                    'nama_produk'    => $item['nama'],
+                    'seri'           => $item['seri'] ?? null,
+                    'warna'          => $item['warna'] ?? null,
+                    'qty'            => $item['qty'],
+                    'harga_satuan'   => $item['harga'],
+                    'subtotal'       => $item['harga'] * $item['qty'],
+                    'keterangan'     => $item['keterangan'] ?? null,
                 ]);
             }
-        });
 
-        return redirect()->route('transactions.index')
-            ->with('success', 'Transaksi berhasil disimpan.');
+            DB::commit();
+            return response()->json([
+                'status' => 'success', 
+                'message' => 'Transaksi berhasil disimpan.', 
+                'data' => $transaction
+            ]);
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => 'error', 
+                'message' => 'Gagal menyimpan transaksi: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function show(Transaction $transaction)
@@ -562,9 +625,25 @@ class TransactionController extends Controller
     public function frameAutocomplete(Request $request)
     {
         $q = $request->q;
-        $products = Product::where('kode_produk', 'like', "%{$q}%")
-            ->orWhere('nama', 'like', "%{$q}%")
-            ->orWhere('merek', 'like', "%{$q}%")
+        $products = Product::where('category_id', 1) // Frame Kacamata
+            ->where(function($query) use ($q) {
+                $query->where('kode_produk', 'like', "%{$q}%")
+                    ->orWhere('nama', 'like', "%{$q}%")
+                    ->orWhere('merek', 'like', "%{$q}%");
+            })
+            ->take(10)->get();
+        return response()->json($products);
+    }
+
+    public function lensaAutocomplete(Request $request)
+    {
+        $q = $request->q;
+        $products = Product::whereIn('category_id', [2, 4]) // Lensa Kacamata & Lensa Kontak
+            ->where(function($query) use ($q) {
+                $query->where('kode_produk', 'like', "%{$q}%")
+                    ->orWhere('nama', 'like', "%{$q}%")
+                    ->orWhere('merek', 'like', "%{$q}%");
+            })
             ->take(10)->get();
         return response()->json($products);
     }

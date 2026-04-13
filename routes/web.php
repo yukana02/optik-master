@@ -59,6 +59,7 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('transactions/pos/delete/{id}', [TransactionController::class, 'posDelete'])->name('transactions.pos.delete');
             Route::get('transactions/pos/patient-autocomplete', [TransactionController::class, 'patientAutocomplete'])->name('patients.autocomplete');
             Route::get('transactions/pos/frame-autocomplete', [TransactionController::class, 'frameAutocomplete'])->name('products.frame.autocomplete');
+            Route::get('transactions/pos/lensa-autocomplete', [TransactionController::class, 'lensaAutocomplete'])->name('products.lensa.autocomplete');
             Route::get('transactions/pos/doctor-autocomplete', [TransactionController::class, 'doctorAutocomplete'])->name('doctors.autocomplete');
             // ---------------------------
 

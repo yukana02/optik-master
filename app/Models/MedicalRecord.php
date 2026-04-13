@@ -12,8 +12,8 @@ class MedicalRecord extends Model
 
     protected $fillable = [
         'patient_id', 'user_id', 'tanggal_kunjungan', 'keluhan',
-        'od_sph', 'od_cyl', 'od_axis', 'od_add', 'od_pd', 'od_vis',
-        'os_sph', 'os_cyl', 'os_axis', 'os_add', 'os_pd', 'os_vis',
+        'od_sph', 'od_cyl', 'od_axis', 'od_add', 'od_pd', 'od_vis', 'od_prism',
+        'os_sph', 'os_cyl', 'os_axis', 'os_add', 'os_pd', 'os_vis', 'os_prism',
         'pd_total', 'jenis_lensa', 'rekomendasi_frame', 'catatan',
     ];
 

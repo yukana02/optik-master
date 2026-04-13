@@ -11,40 +11,76 @@ return new class extends Migration
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
 
-            // identitas transaksi
+            // Identitas Transaksi
             $table->string('no_transaksi', 25)->unique();
             $table->foreignId('patient_id')->nullable()->constrained()->onDelete('set null');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('medical_record_id')->nullable()->constrained()->onDelete('set null');
 
-            // tanggal transaksi
-            $table->date('tgl_order');
-            $table->date('tgl_faktur');
+            // Tanggal Transaksi & Janji
+            $table->date('tgl_order')->nullable();
+            $table->date('tgl_faktur')->nullable();
+            $table->date('tgl_selesai_janji')->nullable();
 
-            // status tambahan
-            $table->tinyInteger('tipe_faktur')->nullable();
+            // Status & Tipe
+            $table->integer('typefaktur')->nullable();
             $table->tinyInteger('diambil')->default(0);
+            $table->enum('status', ['pending', 'dp', 'lunas', 'batal', 'paid', 'unpaid'])->default('pending');
 
-            // harga pembayaran
-            $table->decimal('total_harga', 15, 2)->default(0);
-            $table->decimal('diskon_persen', 5, 2)->default(0);
-            $table->decimal('diskon_nominal', 15, 2)->default(0);
+            // Finansial (Standardized with POS logic)
+            $table->decimal('harga_jual', 15, 2)->default(0);
+            $table->decimal('potongan', 15, 2)->default(0);
+            $table->decimal('potongan_bpjs', 15, 2)->default(0);
             $table->decimal('total_bayar', 15, 2)->default(0);
-
-            // dp system
             $table->decimal('dp', 15, 2)->default(0);
-            $table->decimal('sisa', 15, 2)->default(0);
-
-            // pembayaran langsung
             $table->decimal('bayar', 15, 2)->default(0);
+            $table->decimal('sisa', 15, 2)->default(0);
             $table->decimal('kembalian', 15, 2)->default(0);
-
-            // metode pembayaran & status
+            $table->decimal('diskon_persen', 5, 2)->default(0);
             $table->enum('metode_bayar', ['tunai', 'transfer', 'qris', 'debit', 'kredit'])->default('tunai');
-            $table->enum('status', ['pending', 'dp', 'lunas', 'batal']);
+
+            // Snapshot Pasien
+            $table->string('no_bpjs')->nullable();
+            $table->string('nama_pasien')->nullable();
+            $table->text('alamat_pasien')->nullable();
+            $table->string('telp_pasien')->nullable();
+            $table->string('asal_resep')->nullable();
+
+            // Refraksi OD (Kanan)
+            $table->string('od_sph', 20)->nullable();
+            $table->string('od_cyl', 20)->nullable();
+            $table->string('od_axis', 20)->nullable();
+            $table->string('od_add', 20)->nullable();
+            $table->string('od_mpd', 20)->nullable();
+            $table->string('od_prism', 20)->nullable();
+
+            // Refraksi OS (Kiri)
+            $table->string('os_sph', 20)->nullable();
+            $table->string('os_cyl', 20)->nullable();
+            $table->string('os_axis', 20)->nullable();
+            $table->string('os_add', 20)->nullable();
+            $table->string('os_mpd', 20)->nullable();
+            $table->string('os_prism', 20)->nullable();
+
+            // Detail Produk (Snapshot / Main Item)
+            $table->string('lensa')->nullable();
+            $table->string('kode_frame')->nullable();
+            $table->string('nama_produk')->nullable();
+            $table->text('keterangan_frame')->nullable();
+            $table->string('seri')->nullable();
+            $table->string('warna')->nullable();
+
+            // Produksi & Lab
+            $table->string('no_legalisasi')->nullable();
+            $table->date('tgl_legalisasi')->nullable();
+            $table->date('tgl_faset')->nullable();
+            $table->string('lab')->nullable();
+            $table->string('tempat_faset')->nullable();
+            $table->date('tgl_datang_faset')->nullable();
+            $table->date('tgl_selesai_faset')->nullable();
+
+            // JSON fields (Legacy/Extra)
             $table->text('catatan')->nullable();
-            
-            // JSON fields untuk data resep, jadwal, dan tambahan
             $table->json('resep')->nullable();
             $table->json('jadwal')->nullable();
             $table->json('tambahan')->nullable();

@@ -292,14 +292,14 @@
                 <i class="bi bi-graph-up-arrow"></i> Lap. Penjualan
             </a>
 
-            <a href="{{ route('reports.produk-terlaris') }}"
-                class="nav-link {{ request()->routeIs('reports.produk-terlaris') ? 'active' : '' }}">
-                <i class="bi bi-trophy"></i> Produk Terlaris
-            </a>
+            <!-- <a href="{{ route('reports.produk-terlaris') }}"
+                    class="nav-link {{ request()->routeIs('reports.produk-terlaris') ? 'active' : '' }}">
+                    <i class="bi bi-trophy"></i> Produk Terlaris
+                </a>
 
-            <a href="{{ route('reports.stok') }}" class="nav-link {{ request()->routeIs('reports.stok') ? 'active' : '' }}">
-                <i class="bi bi-boxes"></i> Lap. Stok
-            </a>
+                <a href="{{ route('reports.stok') }}" class="nav-link {{ request()->routeIs('reports.stok') ? 'active' : '' }}">
+                    <i class="bi bi-boxes"></i> Lap. Stok
+                </a> -->
         @endcanany
 
         @if(auth()->user()->hasRole('super_admin'))
@@ -353,19 +353,24 @@
                     ->get();
             @endphp
             <div class="d-flex align-items-center me-3 dropdown">
-                <button class="btn btn-light position-relative" type="button" id="notifDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Pesanan Siap Diambil">
+                <button class="btn btn-light position-relative" type="button" id="notifDropdown"
+                    data-bs-toggle="dropdown" aria-expanded="false" title="Pesanan Siap Diambil">
                     <i class="bi bi-bell fs-5 text-secondary"></i>
                     @if($pickupTodayCount > 0)
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light">
-                        {{ $pickupTodayCount }}
-                        <span class="visually-hidden">unread messages</span>
-                    </span>
+                        <span
+                            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light">
+                            {{ $pickupTodayCount }}
+                            <span class="visually-hidden">unread messages</span>
+                        </span>
                     @endif
                 </button>
-                <div class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="notifDropdown" style="width: 320px; max-height: 400px; overflow-y: auto;">
-                    <div class="dropdown-header fw-bold border-bottom pb-2 pt-1 d-flex justify-content-between align-items-center bg-white position-sticky top-0" style="z-index: 10;">
+                <div class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="notifDropdown"
+                    style="width: 320px; max-height: 400px; overflow-y: auto;">
+                    <div class="dropdown-header fw-bold border-bottom pb-2 pt-1 d-flex justify-content-between align-items-center bg-white position-sticky top-0"
+                        style="z-index: 10;">
                         <span class="text-dark">Notifikasi Pengambilan</span>
-                        <a href="{{ route('pickup.index') }}" class="text-decoration-none small text-primary">Lihat Semua</a>
+                        <a href="{{ route('pickup.index') }}" class="text-decoration-none small text-primary">Lihat
+                            Semua</a>
                     </div>
                     @forelse($allPickupsNotif as $trx)
                         @php
@@ -375,7 +380,8 @@
                         @endphp
                         <a href="{{ route('transactions.show', $trx) }}" class="dropdown-item py-2 border-bottom text-wrap">
                             <div class="d-flex justify-content-between mb-1">
-                                <span class="fw-semibold text-truncate" style="font-size: 0.85rem; max-width: 70%;">{{ $trx->patient->nama ?? ($trx->nama_pasien ?? 'Umum') }}</span>
+                                <span class="fw-semibold text-truncate"
+                                    style="font-size: 0.85rem; max-width: 70%;">{{ $trx->patient->nama ?? ($trx->nama_pasien ?? 'Umum') }}</span>
                                 <span class="{{ $dateClass }}" style="font-size: 0.75rem;">
                                     {{ \Carbon\Carbon::parse($trx->tgl_selesai_janji)->format('d/m/Y') }}
                                 </span>

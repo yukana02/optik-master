@@ -22,6 +22,7 @@ return new class extends Migration
             $table->decimal('od_add', 5, 2)->nullable()->comment('Addisi kanan');
             $table->decimal('od_pd', 5, 2)->nullable()->comment('Pupil Distance kanan');
             $table->decimal('od_vis', 5, 2)->nullable()->comment('Visus kanan');
+            $table->string('od_prism', 20)->nullable()->comment('Prism kanan');
 
             // Mata Kiri (OS = Oculus Sinister)
             $table->decimal('os_sph', 5, 2)->nullable()->comment('Spheris kiri');
@@ -30,6 +31,7 @@ return new class extends Migration
             $table->decimal('os_add', 5, 2)->nullable()->comment('Addisi kiri');
             $table->decimal('os_pd', 5, 2)->nullable()->comment('Pupil Distance kiri');
             $table->decimal('os_vis', 5, 2)->nullable()->comment('Visus kiri');
+            $table->string('os_prism', 20)->nullable()->comment('Prism kiri');
 
             // PD total
             $table->decimal('pd_total', 5, 2)->nullable()->comment('PD Binokular');
