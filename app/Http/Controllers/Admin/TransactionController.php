@@ -209,6 +209,7 @@ class TransactionController extends Controller
             'fasetan'        => 'admin.transactions.print.fasetan',
             'bon_3_rangkap'  => 'admin.transactions.print.fasetan',
             'pesanan_besar'  => 'admin.transactions.print.pesanan_besar',
+            'formulir_bpjs'  => 'admin.transactions.print.formulir_bpjs',
             // 'bon_1_rangkap'  => 'admin.transactions.print.bon_1_rangkap',
         ];
 
