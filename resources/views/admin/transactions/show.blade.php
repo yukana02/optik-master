@@ -94,7 +94,7 @@
                     <a href="{{ route('transactions.index') }}" class="btn btn-outline-secondary rounded-pill px-4">
                         <i class="bi bi-arrow-left me-1"></i> Kembali
                     </a>
-                    <a href="{{ route('transactions.create') }}" class="btn btn-primary rounded-pill px-4 shadow-sm">
+                    <a href="{{ route('transactions.create', $transaction->id) }}" class="btn btn-primary rounded-pill px-4 shadow-sm">
                         <i class="bi bi-pencil-square me-1"></i> Edit di POS
                     </a>
                 </div>

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\{Transaction, TransactionItem, Patient, Product, MedicalRecord, User};
+use App\Models\{Transaction, TransactionItem, Patient, Product, MedicalRecord};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -36,8 +36,12 @@ class TransactionController extends Controller
         return view('admin.transactions.index', compact('transactions'));
     }
 
-    public function create()
+    public function create(Transaction $transaction = null)
     {
+        if ($transaction) {
+            $transaction->load(['patient', 'items.product.category', 'medicalRecord']);
+        }
+
         $products = Product::where('is_active', true)
             ->where('stok', '>', 0)
             ->with('category')
@@ -45,203 +49,95 @@ class TransactionController extends Controller
         $patients = Patient::orderBy('nama')->get(['id', 'no_rm', 'nama', 'no_bpjs']);
         $medRecs = collect();
 
-        return view('admin.transactions.create', compact('products', 'patients', 'medRecs'));
+        return view('admin.transactions.create', compact('products', 'patients', 'medRecs', 'transaction'));
     }
 
     public function store(Request $request)
     {
-        $data = $request->input('transaction_data');
+        // Normalize string to numeric input
+        $request->merge([
+            'bayar' => (int) str_replace('.', '', $request->bayar),
+            'diskon_nominal' => (int) str_replace('.', '', $request->diskon_nominal),
+            'potongan_bpjs' => (int) str_replace('.', '', $request->potongan_bpjs),
+        ]);
 
-        try {
-            DB::beginTransaction();
+        $request->validate([
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.qty' => 'required|integer|min:1',
+            'items.*.harga_satuan' => 'required|numeric|min:0',
+            'metode_bayar' => 'required|in:tunai,transfer,qris,debit,kredit',
+            'bayar' => 'required|numeric|min:0',
+            'diskon_persen' => 'nullable|numeric|min:0|max:100',
+            'diskon_nominal' => 'nullable|numeric|min:0',
+            'potongan_bpjs' => 'nullable|numeric|min:0',
+        ]);
 
-            // =========================
-            // 1. PATIENT
-            // =========================
-            $patientData = $data['patient'] ?? [];
-            $patient = null;
+        DB::transaction(function () use ($request) {
+            $totalHarga = 0;
+            $itemsData = [];
 
-            if (!empty($patientData['nama'])) {
-                if (!empty($patientData['id'])) {
-                    $patient = Patient::find($patientData['id']);
-                    if ($patient) {
-                        $patient->update([
-                            'nama'    => $patientData['nama'],
-                            'telp'    => $patientData['telp'] ?? null,
-                            'alamat'  => $patientData['alamat'] ?? null,
-                            'no_bpjs' => $patientData['no_bpjs'] ?? null,
-                        ]);
-                    }
+            foreach ($request->items as $item) {
+                $product = Product::lockForUpdate()->findOrFail($item['product_id']);
+
+                if ($product->stok < $item['qty']) {
+                    throw new \Exception("Stok produk '{$product->nama}' tidak mencukupi. Stok saat ini: {$product->stok}");
                 }
-                
-                if (!$patient) {
-                    $patient = Patient::create([
-                        'no_rm'   => Patient::generateNoRM(),
-                        'nama'    => $patientData['nama'],
-                        'telp'    => $patientData['telp'] ?? null,
-                        'alamat'  => $patientData['alamat'] ?? null,
-                        'no_bpjs' => $patientData['no_bpjs'] ?? null,
-                    ]);
-                }
+
+                $subtotal = $item['harga_satuan'] * $item['qty'];
+                $totalHarga += $subtotal;
+
+                $itemsData[] = [
+                    'product_id' => $product->id,
+                    'nama_produk' => $product->nama,
+                    'qty' => $item['qty'],
+                    'harga_satuan' => $item['harga_satuan'],
+                    'diskon' => $item['diskon'] ?? 0,
+                    'subtotal' => $subtotal - ($item['diskon'] ?? 0),
+                ];
+
+                // Kurangi stok
+                $product->decrement('stok', $item['qty']);
             }
 
-            // =========================
-            // 2. PEMBAYARAN & STATUS
-            // =========================
-            $pembayaran = $data['pembayaran'] ?? [];
-            $hargaJual = $pembayaran['harga_jual'] ?? 0;
-            $potongan = $pembayaran['diskon'] ?? 0;
-            $dp = $pembayaran['dp'] ?? 0;
-            $sisa = $pembayaran['sisa'] ?? 0;
-            $bayar = $pembayaran['bayar'] ?? 0; // Legacy
-            if ($dp == 0 && $bayar > 0) $dp = $bayar; // Legacy support
-            
-            $totalBayar = max(0, $hargaJual - $potongan);
-            $totalMasuk = $dp + $bayar;
-            
-            $kembalian = 0;
-            if ($sisa < 0) {
-                $kembalian = abs($sisa);
-                $sisa = 0;
+            // Hitung diskon
+            $diskonPersen = $request->diskon_persen ?? 0;
+            $diskonNominal = $request->diskon_nominal ?? 0;
+            if ($diskonPersen > 0) {
+                $diskonNominal = round($totalHarga * ($diskonPersen / 100));
             }
 
-            $status = 'pending';
-            if ($totalMasuk == 0) {
-                $status = 'unpaid';
-            } elseif ($sisa > 0) {
-                $status = 'dp';
-            } else {
-                $status = 'paid';
-            }
+            $potonganBpjs = $request->potongan_bpjs ?? 0;
+            $totalBayar = $totalHarga - $diskonNominal - $potonganBpjs;
+            $kembalian = $request->bayar - $totalBayar;
 
-            // =========================
-            // 3. PRODUCT SNAPSHOT (First Item)
-            // =========================
-            $items = $data['items'] ?? [];
-            $lensa = null;
-            $frame = null;
-            foreach ($items as $item) {
-                $type = strtolower($item['type'] ?? '');
-                if ($type == 'lensa' || str_contains(strtolower($item['nama']), 'lensa')) {
-                    if (!$lensa) $lensa = $item['nama'];
-                } elseif ($type == 'frame' || str_contains(strtolower($item['nama']), 'frame')) {
-                    if (!$frame) $frame = $item['nama'];
-                }
+            // Double Protection
+            if ($request->bayar < $totalBayar) {
+                throw new \Exception('Jumlah bayar kurang dari total yang harus dibayar.');
             }
-            if (!$lensa) $lensa = $data['tambahan']['lensa'] ?? null;
-
-            // =========================
-            // 4. SIMPAN TRANSACTION
-            // =========================
-            $trxData = $data['transaksi'] ?? [];
-            $resep = $data['resep'] ?? [];
-            $mata = $resep['mata'] ?? [];
-            $jadwal = $data['jadwal'] ?? [];
-            $tambahan = $data['tambahan'] ?? [];
 
             $transaction = Transaction::create([
-                // Identifier
-                'no_transaksi' => $trxData['no_transaksi'],
-                'patient_id'   => $patient ? $patient->id : null,
-                'user_id'      => auth()->id(),
-                
-                // Dates
-                'tgl_order'         => $trxData['tgl_order'] ?? date('Y-m-d'),
-                'tgl_faktur'        => $trxData['tgl_faktur'] ?? date('Y-m-d'),
-                'tgl_selesai_janji' => $jadwal['tgl_selesai_janji'] ?? null,
-
-                // Status
-                'typefaktur' => $trxData['tipe_faktur'] ?? 1,
-                'diambil'    => $trxData['diambil'] ?? 2,
-                'status'     => $status,
-
-                // Money
-                'harga_jual'  => $hargaJual,
-                'potongan'    => $potongan,
+                'no_transaksi' => Transaction::generateNomor(),
+                'patient_id' => $request->patient_id ?: null,
+                'user_id' => auth()->id(),
+                'medical_record_id' => $request->medical_record_id ?: null,
+                'total_harga' => $totalHarga,
+                'diskon_persen' => $diskonPersen,
+                'diskon_nominal' => $diskonNominal,
+                'potongan_bpjs' => $potonganBpjs,
                 'total_bayar' => $totalBayar,
-                'dp'          => $dp,
-                'sisa'        => $sisa,
-                'kembalian'   => $kembalian,
-
-                // Snapshot Patient
-                'nama_pasien'   => $patientData['nama'] ?? null,
-                'no_bpjs'       => $patientData['no_bpjs'] ?? null,
-                'telp_pasien'   => $patientData['telp'] ?? null,
-                'alamat_pasien' => $patientData['alamat'] ?? null,
-                'asal_resep'    => $resep['asal'] ?? null,
-
-                // Snapshot Refraksi
-                'od_sph'   => $mata['od']['sph'] ?? null,
-                'od_cyl'   => $mata['od']['cyl'] ?? null,
-                'od_axis'  => $mata['od']['axis'] ?? null,
-                'od_add'   => $mata['od']['add'] ?? null,
-                'od_mpd'   => $mata['od']['mpd'] ?? null,
-                'od_prism' => $mata['od']['prism'] ?? null,
-                'os_sph'   => $mata['os']['sph'] ?? null,
-                'os_cyl'   => $mata['os']['cyl'] ?? null,
-                'os_axis'  => $mata['os']['axis'] ?? null,
-                'os_add'   => $mata['os']['add'] ?? null,
-                'os_mpd'   => $mata['os']['mpd'] ?? null,
-                'os_prism' => $mata['os']['prism'] ?? null,
-
-                // Snapshot Product Info
-                'lensa'            => $lensa,
-                'nama_produk'      => $frame,
-                'keterangan_frame' => $tambahan['keterangan_frame'] ?? null,
-
-                // Lab & Production
-                'no_legalisasi'     => $tambahan['no_legalisasi'] ?? null,
-                'tgl_legalisasi'    => $tambahan['tgl_legalisasi'] ?? null,
-                'lab'               => $tambahan['lab'] ?? null,
-                'tempat_faset'      => $tambahan['tempat_faset'] ?? null,
-                'tgl_faset'         => $jadwal['tgl_faset'] ?? null,
-                'tgl_datang_faset'  => $jadwal['tgl_datang_faset'] ?? null,
-                'tgl_selesai_faset' => $jadwal['tgl_selesai_faset'] ?? null,
-
-                // Extra Data
-                'catatan' => $tambahan['catatan'] ?? null,
-                'resep'   => $resep, // Store raw JSON just in case
+                'bayar' => $request->bayar,
+                'kembalian' => max(0, $kembalian),
+                'metode_bayar' => $request->metode_bayar,
+                'status' => 'lunas',
+                'catatan' => $request->catatan,
             ]);
 
-            // =========================
-            // 5. SIMPAN ITEMS
-            // =========================
-            foreach ($items as $item) {
-                // Deduct Stoks
-                if (!empty($item['product_id'])) {
-                    $product = Product::lockForUpdate()->find($item['product_id']);
-                    if ($product && $product->stok > 0) {
-                        $product->decrement('stok', $item['qty']);
-                    }
-                }
+            $transaction->items()->createMany($itemsData);
+        });
 
-                TransactionItem::create([
-                    'transaction_id' => $transaction->id,
-                    'product_id'     => $item['product_id'] ?? null,
-                    'nama_produk'    => $item['nama'],
-                    'seri'           => $item['seri'] ?? null,
-                    'warna'          => $item['warna'] ?? null,
-                    'qty'            => $item['qty'],
-                    'harga_satuan'   => $item['harga'],
-                    'subtotal'       => $item['harga'] * $item['qty'],
-                    'keterangan'     => $item['keterangan'] ?? null,
-                ]);
-            }
-
-            DB::commit();
-            return response()->json([
-                'status' => 'success', 
-                'message' => 'Transaksi berhasil disimpan.', 
-                'data' => $transaction
-            ]);
-            
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'status' => 'error', 
-                'message' => 'Gagal menyimpan transaksi: ' . $e->getMessage()
-            ], 500);
-        }
+        return redirect()->route('transactions.index')
+            ->with('success', 'Transaksi berhasil disimpan.');
     }
 
     public function show(Transaction $transaction)
@@ -270,16 +166,15 @@ class TransactionController extends Controller
         $views = [
             'garansi'        => 'admin.transactions.print.garansi',
             'fasetan'        => 'admin.transactions.print.fasetan',
-            'bon_3_rangkap'  => 'admin.transactions.print.fasetan',
             'pesanan_besar'  => 'admin.transactions.print.pesanan_besar',
+            'bon_3_rangkap'  => 'admin.transactions.print.bon_3_rangkap',
+            'bon_1_rangkap'  => 'admin.transactions.print.bon_1_rangkap',
             'formulir_bpjs'  => 'admin.transactions.print.formulir_bpjs',
-            // 'bon_1_rangkap'  => 'admin.transactions.print.bon_1_rangkap',
         ];
 
         $viewName = $views[$type] ?? $views['garansi'];
-        $copies = ($type === 'bon_3_rangkap') ? 3 : 1;
 
-        return view($viewName, compact('transaction', 'copies'));
+        return view($viewName, compact('transaction'));
     }
 
     public function cancel(Transaction $transaction)
@@ -545,10 +440,15 @@ class TransactionController extends Controller
             $cartData = json_decode($request->cart_data, true) ?: [];
             if (is_array($cartData) && count($cartData) > 0) {
                 foreach ($cartData as $item) {
-                    if (empty($item['kode']))
+                    if (empty($item['nama']))
                         continue;
 
-                    $product = Product::where('kode_produk', $item['kode'])->lockForUpdate()->first();
+                    // Fallback to checking by kode if needed or ID
+                    $product = null;
+                    if (!empty($item['product_id'])) {
+                        $product = Product::find($item['product_id']);
+                    }
+                    
                     $qty = max(1, intval($item['qty'] ?? 1));
 
                     if ($product) {
@@ -625,40 +525,25 @@ class TransactionController extends Controller
     public function frameAutocomplete(Request $request)
     {
         $q = $request->q;
-        $products = Product::where('category_id', 1) // Frame Kacamata
-            ->where(function($query) use ($q) {
-                $query->where('kode_produk', 'like', "%{$q}%")
-                    ->orWhere('nama', 'like', "%{$q}%")
-                    ->orWhere('merek', 'like', "%{$q}%");
-            })
-            ->take(10)->get();
+        $type = $request->query('type');
+        
+        $query = Product::where(function($builder) use ($q) {
+            $builder->where('kode_produk', 'like', "%{$q}%")
+                ->orWhere('nama', 'like', "%{$q}%")
+                ->orWhere('merek', 'like', "%{$q}%");
+        });
+
+        if ($type === 'Frame') {
+            $query->whereHas('category', function($cat) {
+                $cat->where('nama', 'like', '%Frame%');
+            });
+        } elseif ($type === 'Lensa') {
+            $query->whereHas('category', function($cat) {
+                $cat->where('nama', 'like', '%Lensa%');
+            });
+        }
+
+        $products = $query->take(10)->get();
         return response()->json($products);
-    }
-
-    public function lensaAutocomplete(Request $request)
-    {
-        $q = $request->q;
-        $products = Product::whereIn('category_id', [2, 4]) // Lensa Kacamata & Lensa Kontak
-            ->where(function($query) use ($q) {
-                $query->where('kode_produk', 'like', "%{$q}%")
-                    ->orWhere('nama', 'like', "%{$q}%")
-                    ->orWhere('merek', 'like', "%{$q}%");
-            })
-            ->take(10)->get();
-        return response()->json($products);
-    }
-
-    public function doctorAutocomplete(Request $request)
-    {
-        $q = $request->q;
-
-        $doctors = User::where('role', 'doctor')
-            ->where(function ($query) use ($q) {
-                $query->where('name', 'like', "%{$q}%");
-            })
-            ->limit(10)
-            ->get(['id', 'name']);
-
-        return response()->json($doctors);
     }
 }

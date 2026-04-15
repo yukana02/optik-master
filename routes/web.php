@@ -47,7 +47,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['permission:transaction.view'])->group(
         function () {
             Route::get('transactions', [TransactionController::class, 'index'])->name('transactions.index');
-            Route::get('transactions/create', [TransactionController::class, 'create'])->name('transactions.create');
+            Route::get('transactions/create/{transaction?}', [TransactionController::class, 'create'])->name('transactions.create');
             Route::post('transactions', [TransactionController::class, 'store'])->name('transactions.store');
             Route::get('transactions/product/search', [TransactionController::class, 'searchProduct'])->name('transactions.product.search');
             Route::get('transactions/get-medical-records', [TransactionController::class, 'getMedicalRecords'])->name('transactions.medical-records');
@@ -59,16 +59,15 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('transactions/pos/delete/{id}', [TransactionController::class, 'posDelete'])->name('transactions.pos.delete');
             Route::get('transactions/pos/patient-autocomplete', [TransactionController::class, 'patientAutocomplete'])->name('patients.autocomplete');
             Route::get('transactions/pos/frame-autocomplete', [TransactionController::class, 'frameAutocomplete'])->name('products.frame.autocomplete');
-            Route::get('transactions/pos/lensa-autocomplete', [TransactionController::class, 'lensaAutocomplete'])->name('products.lensa.autocomplete');
             Route::get('transactions/pos/doctor-autocomplete', [TransactionController::class, 'doctorAutocomplete'])->name('doctors.autocomplete');
             // ---------------------------
-
+    
             // Pickup Transaction
             Route::get('transactions/pickup', [PickupController::class, 'index'])->name('pickup.index');
             Route::get('transactions/pickup/{transaction}', [PickupController::class, 'pickupShow'])->name('pickup.show');
             Route::post('/pickup/{transaction}/pay', [PickupController::class, 'store'])->name('pickup.store');
             Route::patch('/pickup/{transaction}/confirm', [PickupController::class, 'confirm'])->name('pickup.confirm');
-    
+
             Route::get('transactions/{transaction}/print', [TransactionController::class, 'printView'])->name('transactions.print');
             Route::get('transactions/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
         }
