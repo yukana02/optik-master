@@ -4,8 +4,8 @@
 @section('page-title','Edit User')
 @section('content')
 <div class="row justify-content-center">
-<div class="col-md-6">
-<div class="card">
+<div class="col-md-8 col-lg-6">
+<div class="card user-form-card">
     <div class="card-header p-3"><i class="bi bi-pencil text-warning me-2"></i>Edit User: {{ $user->name }}</div>
     <div class="card-body p-4">
         <form method="POST" action="{{ route('users.update',$user) }}">
@@ -53,4 +53,11 @@
 </div>
 </div>
 </div>
+@push('styles')
+<style>
+    .user-form-card { max-width: 700px; margin: auto; }
+    .user-form-card .form-control,
+    .user-form-card .form-select { min-height: 48px; }
+</style>
+@endpush
 @endsection

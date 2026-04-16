@@ -87,6 +87,7 @@
                 <tr>
                     <th class="ps-4 rounded-start">No. Transaksi</th>
                     <th>Pasien</th>
+                    <th>Dokter</th>
                     <th>Kasir</th>
                     <th>Total</th>
                     <th>Potongan BPJS</th>
@@ -112,6 +113,9 @@
                                 @endif
                             </div>
                         </div>
+                    </td>
+                    <td>
+                        <span class="text-muted small"><i class="bi bi-person-badge me-1"></i>{{ $trx->nama_dokter ?? '-' }}</span>
                     </td>
                     <td>
                         <span class="text-muted small"><i class="bi bi-headset me-1"></i>{{ $trx->kasir->name ?? '-' }}</span>
@@ -149,7 +153,10 @@
                         </div>
                     </td>
                     <td class="text-end pe-4">
-                        <a href="{{ route('transactions.show',$trx) }}" class="btn btn-sm btn-primary rounded-circle shadow-sm btn-action" style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" title="Lihat Detail">
+                        <button type="button" onclick="openPrintModal({{ $trx->id }}, {{ $trx->potongan_bpjs > 0 ? 'true' : 'false' }})" class="btn btn-sm btn-outline-primary rounded-circle shadow-sm btn-action ms-1" style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" title="Cetak Transaksi">
+                            <i class="bi bi-printer"></i>
+                        </button>
+                        <a href="{{ route('transactions.show',$trx) }}" class="btn btn-sm btn-primary rounded-circle shadow-sm btn-action ms-1" style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" title="Lihat Detail">
                             <i class="bi bi-eye"></i>
                         </a>
                     </td>
@@ -175,4 +182,61 @@
     </div>
     @endif
 </div>
+
+<input type="hidden" id="trx_id">
+
+@include('admin.transactions.partials.modal-print')
+
 @endsection
+
+@push('scripts')
+<script>
+
+
+    // Post-Save Detection & Auto Pop-up
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const lastId = urlParams.get('just_saved');
+
+        if (lastId) {
+            // Determine if the last transaction was BPJS (from the first item in the list)
+            let isBpjsSaved = false;
+            @if($transactions->count() > 0 && $transactions->first()->potongan_bpjs > 0)
+                isBpjsSaved = true;
+            @endif
+
+            // Direct open modal for just saved transaction
+            openPrintModal(lastId, isBpjsSaved);
+            
+            // Optional: Nice toast feedback
+            setTimeout(() => {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Transaksi Berhasil!',
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
+                }
+            }, 500);
+
+            // Clean up URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+        } else {
+            // "saat buka riwayat transaksi, pop up print modal langsung muncul untuk print transaksi terakhir"
+            // If no search filter is active and we have transactions
+            const hasFilter = Array.from(urlParams.keys()).some(k => k !== 'page' && urlParams.get(k) !== '');
+            
+            if (!hasFilter) {
+                @if($transactions->count() > 0)
+                    const latestTrxId = "{{ $transactions->first()->id }}";
+                    const isLatestBpjs = {{ $transactions->first()->potongan_bpjs > 0 ? 'true' : 'false' }};
+                    openPrintModal(latestTrxId, isLatestBpjs);
+                @endif
+            }
+        }
+    });
+</script>
+@endpush

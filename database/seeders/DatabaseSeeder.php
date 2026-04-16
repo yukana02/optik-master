@@ -23,21 +23,40 @@ class DatabaseSeeder extends Seeder
         // =====================
         $permissions = [
             // User management
-            'user.view', 'user.create', 'user.edit', 'user.delete',
+            'user.view',
+            'user.create',
+            'user.edit',
+            'user.delete',
             // Pasien
-            'patient.view', 'patient.create', 'patient.edit', 'patient.delete',
+            'patient.view',
+            'patient.create',
+            'patient.edit',
+            'patient.delete',
             // Rekam Medis
-            'medical_record.view', 'medical_record.create', 'medical_record.edit', 'medical_record.delete',
+            'medical_record.view',
+            'medical_record.create',
+            'medical_record.edit',
+            'medical_record.delete',
             // Produk
-            'product.view', 'product.create', 'product.edit', 'product.delete',
+            'product.view',
+            'product.create',
+            'product.edit',
+            'product.delete',
             // Kategori
-            'category.view', 'category.create', 'category.edit', 'category.delete',
+            'category.view',
+            'category.create',
+            'category.edit',
+            'category.delete',
             // Transaksi
-            'transaction.view', 'transaction.create', 'transaction.edit', 'transaction.delete',
+            'transaction.view',
+            'transaction.create',
+            'transaction.edit',
+            'transaction.delete',
             // Laporan
             'report.view',
             // Pengaturan
-            'setting.view', 'setting.edit',
+            'setting.view',
+            'setting.edit',
         ];
 
         foreach ($permissions as $perm) {
@@ -55,19 +74,36 @@ class DatabaseSeeder extends Seeder
         // Admin — semua kecuali user management & setting
         $admin = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
         $admin->syncPermissions([
-            'patient.view', 'patient.create', 'patient.edit', 'patient.delete',
-            'medical_record.view', 'medical_record.create', 'medical_record.edit', 'medical_record.delete',
-            'product.view', 'product.create', 'product.edit', 'product.delete',
-            'category.view', 'category.create', 'category.edit', 'category.delete',
-            'transaction.view', 'transaction.create', 'transaction.edit',
+            'patient.view',
+            'patient.create',
+            'patient.edit',
+            'patient.delete',
+            'medical_record.view',
+            'medical_record.create',
+            'medical_record.edit',
+            'medical_record.delete',
+            'product.view',
+            'product.create',
+            'product.edit',
+            'product.delete',
+            'category.view',
+            'category.create',
+            'category.edit',
+            'category.delete',
+            'transaction.view',
+            'transaction.create',
+            'transaction.edit',
             'report.view',
         ]);
 
         // Kasir — hanya pasien, transaksi
         $kasir = Role::firstOrCreate(['name' => 'kasir', 'guard_name' => 'web']);
         $kasir->syncPermissions([
-            'patient.view', 'patient.create', 'patient.edit',
-            'transaction.view', 'transaction.create',
+            'patient.view',
+            'patient.create',
+            'patient.edit',
+            'transaction.view',
+            'transaction.create',
             'product.view',
         ]);
 
@@ -96,10 +132,10 @@ class DatabaseSeeder extends Seeder
         // KATEGORI PRODUK
         // =====================
         $categories = [
-            ['nama' => 'Frame Kacamata',  'deskripsi' => 'Bingkai kacamata berbagai merk & model'],
-            ['nama' => 'Lensa Kacamata',  'deskripsi' => 'Lensa minus, plus, silinder, progresif, photochromic'],
-            ['nama' => 'Kacamata Hitam',  'deskripsi' => 'Sunglasses fashion & sport'],
-            ['nama' => 'Lensa Kontak',    'deskripsi' => 'Softlens harian, bulanan, tahunan'],
+            ['nama' => 'Frame Kacamata', 'deskripsi' => 'Bingkai kacamata berbagai merk & model'],
+            ['nama' => 'Lensa Kacamata', 'deskripsi' => 'Lensa minus, plus, silinder, progresif, photochromic'],
+            ['nama' => 'Kacamata Hitam', 'deskripsi' => 'Sunglasses fashion & sport'],
+            ['nama' => 'Lensa Kontak', 'deskripsi' => 'Softlens harian, bulanan, tahunan'],
             ['nama' => 'Cairan & Aksesori', 'deskripsi' => 'Cairan pembersih, case, tali, lap'],
         ];
 
@@ -110,19 +146,19 @@ class DatabaseSeeder extends Seeder
         // =====================
         // SAMPLE PRODUK
         // =====================
-        $frameId  = Category::where('nama', 'Frame Kacamata')->first()->id;
-        $lensaId  = Category::where('nama', 'Lensa Kacamata')->first()->id;
+        $frameId = Category::where('nama', 'Frame Kacamata')->first()->id;
+        $lensaId = Category::where('nama', 'Lensa Kacamata')->first()->id;
         $softlensId = Category::where('nama', 'Lensa Kontak')->first()->id;
 
         $products = [
-            ['category_id' => $frameId,   'nama' => 'Frame Ray-Ban RB2140',   'merek' => 'Ray-Ban',  'harga_beli' => 350000, 'harga_jual' => 650000,  'stok' => 10],
-            ['category_id' => $frameId,   'nama' => 'Frame Oakley OX8046',    'merek' => 'Oakley',   'harga_beli' => 400000, 'harga_jual' => 750000,  'stok' => 8],
-            ['category_id' => $frameId,   'nama' => 'Frame Silhouette Slim',  'merek' => 'Silhouette','harga_beli' => 500000,'harga_jual' => 950000,  'stok' => 5],
-            ['category_id' => $lensaId,   'nama' => 'Lensa Essilor Single',   'merek' => 'Essilor',  'harga_beli' => 200000, 'harga_jual' => 450000,  'stok' => 20],
-            ['category_id' => $lensaId,   'nama' => 'Lensa Hoya Progresif',   'merek' => 'Hoya',     'harga_beli' => 600000, 'harga_jual' => 1200000, 'stok' => 15],
-            ['category_id' => $lensaId,   'nama' => 'Lensa Photochromic',     'merek' => 'Transitions','harga_beli'=> 450000, 'harga_jual' => 900000, 'stok' => 12],
-            ['category_id' => $softlensId,'nama' => 'Acuvue Oasys Harian',   'merek' => 'Acuvue',   'harga_beli' => 80000,  'harga_jual' => 150000,  'stok' => 30],
-            ['category_id' => $softlensId,'nama' => 'Bausch Lomb Bulanan',    'merek' => 'B&L',      'harga_beli' => 120000, 'harga_jual' => 220000,  'stok' => 25],
+            ['category_id' => $frameId, 'nama' => 'Frame Ray-Ban RB2140', 'merek' => 'Ray-Ban', 'harga_beli' => 350000, 'harga_jual' => 650000, 'stok' => 10],
+            ['category_id' => $frameId, 'nama' => 'Frame Oakley OX8046', 'merek' => 'Oakley', 'harga_beli' => 400000, 'harga_jual' => 750000, 'stok' => 8],
+            ['category_id' => $frameId, 'nama' => 'Frame Silhouette Slim', 'merek' => 'Silhouette', 'harga_beli' => 500000, 'harga_jual' => 950000, 'stok' => 5],
+            ['category_id' => $lensaId, 'nama' => 'Lensa Essilor Single', 'merek' => 'Essilor', 'harga_beli' => 200000, 'harga_jual' => 450000, 'stok' => 20],
+            ['category_id' => $lensaId, 'nama' => 'Lensa Hoya Progresif', 'merek' => 'Hoya', 'harga_beli' => 600000, 'harga_jual' => 1200000, 'stok' => 15],
+            ['category_id' => $lensaId, 'nama' => 'Lensa Photochromic', 'merek' => 'Transitions', 'harga_beli' => 450000, 'harga_jual' => 900000, 'stok' => 12],
+            ['category_id' => $softlensId, 'nama' => 'Acuvue Oasys Harian', 'merek' => 'Acuvue', 'harga_beli' => 80000, 'harga_jual' => 150000, 'stok' => 30],
+            ['category_id' => $softlensId, 'nama' => 'Bausch Lomb Bulanan', 'merek' => 'B&L', 'harga_beli' => 120000, 'harga_jual' => 220000, 'stok' => 25],
         ];
 
         foreach ($products as $i => $prod) {
@@ -135,9 +171,10 @@ class DatabaseSeeder extends Seeder
 
         $this->command->info('✅ Seeder selesai! Akun: superadmin@optik.com / password');
 
-        // Patient Seeder with Factory
-        Patient::factory()->count(100)->create();
 
-        $this->call(UserDoctorSeeder::class);
+        $this->call([
+                // UserDoctorSeeder::class,
+            OptikUserSeeder::class,
+        ]);
     }
 }

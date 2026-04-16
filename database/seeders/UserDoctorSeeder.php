@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class UserDoctorSeeder extends Seeder
 {
@@ -14,9 +15,22 @@ class UserDoctorSeeder extends Seeder
      */
     public function run(): void
     {
-        User::factory()
-            ->count(5)
-            ->doctor()
-            ->create();
+        $doctors = [
+        ];
+
+        foreach ($doctors as $i => $name) {
+            $email = 'doctor' . ($i + 1) . '@optik.com';
+
+            $user = User::firstOrCreate(
+                ['email' => $email],
+                [
+                    'name' => $name,
+                    'password' => Hash::make('password'),
+                ]
+            );
+
+            // Assign admin role
+            $user->assignRole('admin');
+        }
     }
 }

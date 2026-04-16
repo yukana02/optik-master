@@ -25,11 +25,17 @@
                                 </button>
                                 <div id="dd_pasien" class="ac-dropdown d-none"></div>
                             </div>
-                            <div id="patient-selected-badge" class="mt-1 d-none">
-                                <span class="badge bg-success-subtle text-success border border-success-subtle small py-1 px-2">
-                                    <i class="bi bi-check-circle-fill me-1"></i>
-                                    <span id="patient-selected-name">—</span>
-                                </span>
+                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-2">
+                                <div id="patient-selected-badge" class="d-none">
+                                    <span class="badge bg-info-subtle text-info py-1">
+                                        <i class="bi bi-person-check me-1"></i>
+                                        <span id="patient-selected-name"></span>
+                                    </span>
+                                </div>
+                                <button type="button" id="btn-load-history" class="btn btn-sm btn-outline-secondary d-none"
+                                    onclick="loadPatientHistory()">
+                                    <i class="bi bi-clock-history me-1"></i>Lihat Riwayat
+                                </button>
                             </div>
                         </div>
                         <div class="col-12" id="no_bpjs_container" style="display: none;">
@@ -37,8 +43,7 @@
                             <input type="text" name="no_bpjs" id="no_bpjs" class="form-control form-control-sm" placeholder="000...">
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Nama Lengkap</label>
-                            <input type="text" name="nama" id="nama_pasien" class="form-control form-control-sm" placeholder="Nama pasien (kosong = UMUM)">
+                            <input type="hidden" name="nama" id="nama_pasien" class="form-control form-control-sm" placeholder="Nama pasien (kosong = UMUM)">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">No. Telepon</label>
@@ -91,10 +96,7 @@
                             <i class="bi bi-eye"></i> Refraksi (Ukuran Lensa)
                             <span class="badge-req ms-1">wajib</span>
                         </h6>
-                        <button type="button" class="btn btn-sm btn-outline-primary btn-action"
-                            id="btn-load-history" onclick="loadPatientHistory()" style="display:none">
-                            <i class="bi bi-clock-history"></i> Dari Histori
-                        </button>
+                        
                     </div>
 
                     <div id="history-tag-container" class="mb-2 d-none">
@@ -135,17 +137,6 @@
                                 </tr>
                             </tbody>
                         </table>
-                    </div>
-
-                    {{-- Histori Rekam Medis --}}
-                    <div id="patient-history-section" class="mt-3 pt-3 border-top d-none">
-                        <h6 class="form-label mb-3">
-                            <i class="bi bi-clipboard2-pulse text-primary me-2"></i>
-                            Histori Rekam Medis (<span id="history-count">0</span> kunjungan terakhir)
-                        </h6>
-                        <div id="patient-history-list">
-                            {{-- Histori akan di-render di sini via JS --}}
-                        </div>
                     </div>
 
                     <div class="mt-3 pt-3 border-top">

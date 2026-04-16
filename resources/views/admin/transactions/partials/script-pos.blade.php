@@ -365,6 +365,7 @@ setupAC(
         document.getElementById('patient-selected-name').textContent = p.nama;
         document.getElementById('patient-selected-badge').classList.remove('d-none');
         document.getElementById('btn-load-history').style.display = '';
+        document.getElementById('no_bpjs_container').style.display = p.no_bpjs ? '' : 'none';
         
         // AUTO LOAD HISTORY
         loadPatientHistory();
@@ -380,6 +381,7 @@ function clearPatient() {
     document.querySelector('textarea[name="alamat"]').value = '';
     document.getElementById('patient-selected-badge').classList.add('d-none');
     document.getElementById('btn-load-history').style.display = 'none';
+    document.getElementById('no_bpjs_container').style.display = 'none';
     document.getElementById('history-tag-container').classList.add('d-none');
 }
 
@@ -727,6 +729,14 @@ function loadPatientHistory() {
                     }
                 });
                 document.getElementById('history-tag-container').classList.remove('d-none');
+                
+                // Set default doctor from latest history
+                if (data.history && data.history.length > 0) {
+                    const latestDoc = data.history[0].dokter;
+                    if (latestDoc && latestDoc !== '-') {
+                        document.getElementById('nama_dokter').value = latestDoc;
+                    }
+                }
             }
 
             if (data.history && data.history.length > 0) {
@@ -775,6 +785,11 @@ function loadFromHistory(rmId, rmData) {
             el.value = rmData[key] || '';
         }
     });
+    // Fill doctor name
+    if (rmData.dokter && rmData.dokter !== '-') {
+        document.getElementById('nama_dokter').value = rmData.dokter;
+    }
+
     document.getElementById('history-tag-container').classList.remove('d-none');
     snackbar('Refraksi dimuat', 'info');
 }
@@ -819,12 +834,14 @@ function fillForm(trx) {
 
     // Step 2 — Pasien
     const p = trx.patient || {};
-    sv('input[name="no_bpjs"]',    p.no_bpjs  || trx.no_bpjs || '');
+    const selectedBpjs = p.no_bpjs || trx.no_bpjs || '';
+    sv('input[name="no_bpjs"]',    selectedBpjs);
     sv('input[name="nama"]',       p.nama     || trx.nama_pasien || '');
     sv('textarea[name="alamat"]',  p.alamat   || trx.alamat_pasien || '');
     sv('input[name="telp"]',       p.no_hp    || trx.telp_pasien || '');
     sv('input[name="asal_resep"]', trx.asal_resep || '');
     document.getElementById('nama_pasien').value = p.nama || trx.nama_pasien || '';
+    document.getElementById('no_bpjs_container').style.display = selectedBpjs ? '' : 'none';
     if (p.nama || trx.nama_pasien) {
         document.getElementById('patient-selected-name').textContent = p.nama || trx.nama_pasien;
         document.getElementById('patient-selected-badge').classList.remove('d-none');
@@ -953,6 +970,7 @@ function loadSearchData(q, page = 1) {
                             </button>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="#" onclick="selectSearchTrx(${d.id})"><i class="bi bi-pencil me-2"></i>Edit</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="openPrintModal(${d.id}, ${d.is_bpjs})"><i class="bi bi-printer me-2"></i>Cetak</a></li>
                             </ul>
                         </div>
                     </td>
@@ -1050,32 +1068,13 @@ document.getElementById('pos-form').addEventListener('submit', function (e) {
                 timer: 1500,
                 showConfirmButton: false
             }).then(() => {
-                window.location.href = '{{ route("transactions.index") }}';
+                window.location.href = '{{ route("transactions.index") }}?just_saved=' + data.data.id;
             });
         } else { Swal.fire('Error', data.message, 'error'); }
     })
     .catch(err => Swal.fire('Error', err.toString(), 'error'))
     .finally(() => { btn.innerHTML = oldHtml; btn.disabled = false; });
 });
-
-/* ==========================================================
-   PRINT HUB MODAL
-========================================================== */
-const printModalEl = new bootstrap.Modal(document.getElementById('printModal'));
-const printFrame   = document.getElementById('printFrame');
-
-function openPrintModal() {
-    if (!document.getElementById('trx_id').value) { toast('warning', 'Simpan transaksi dulu'); return; }
-    printModalEl.show();
-}
-
-function doPrint(type) {
-    const id = document.getElementById('trx_id').value;
-    if (!id) return;
-    printFrame.src = `{{ url('transactions') }}/${id}/print?type=${type}`;
-    printFrame.onload = () => setTimeout(() => printFrame.contentWindow.print(), 500);
-    printModalEl.hide();
-}
 
 document.addEventListener('DOMContentLoaded', () => {
     updateStepUI(1);

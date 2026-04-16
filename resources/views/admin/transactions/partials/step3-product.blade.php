@@ -14,24 +14,7 @@
                         <i class="bi bi-box-seam"></i> Tambah Produk (UMUM)
                     </h6>
 
-                    {{-- Shortcut tipe produk --}}
-                    <div class="product-type-tabs" id="productTypeTabs">
-                        <button type="button" class="ptype-btn active-frame" data-type="Frame" onclick="setProductType('Frame')">
-                            <i class="bi bi-eyeglasses me-1"></i> Frame
-                        </button>
-                        <button type="button" class="ptype-btn" data-type="Lensa" onclick="setProductType('Lensa')">
-                            <i class="bi bi-circle me-1"></i> Lensa
-                        </button>
-                        <button type="button" class="ptype-btn" data-type="Aksesoris" onclick="setProductType('Aksesoris')">
-                            Aksesoris
-                        </button>
-                        <button type="button" class="ptype-btn" data-type="Jasa" onclick="setProductType('Jasa')">
-                            Jasa
-                        </button>
-                        <button type="button" class="ptype-btn" data-type="Lainnya" onclick="setProductType('Lainnya')">
-                            Lainnya
-                        </button>
-                    </div>
+                    
 
                     <input type="hidden" id="new_item_type" value="Frame">
 

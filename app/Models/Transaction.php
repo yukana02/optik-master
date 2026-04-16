@@ -51,6 +51,7 @@ class Transaction extends Model
         'alamat_pasien',
         'telp_pasien',
         'asal_resep',
+        'nama_dokter',
 
         // Snapshot Refraksi
         'od_sph', 'od_cyl', 'od_axis', 'od_add', 'od_mpd', 'od_prism',

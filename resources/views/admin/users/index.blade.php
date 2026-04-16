@@ -11,7 +11,7 @@
         </a>
     </div>
     <div class="table-responsive">
-        <table class="table mb-0">
+        <table class="table user-table mb-0">
             <thead class="table-light">
                 <tr>
                     <th class="ps-3">#</th><th>Nama</th><th>Email</th><th>Role</th>
@@ -62,5 +62,11 @@
     <div class="card-footer">{{ $users->links() }}</div>
     @endif
 </div>
-@push('styles')<style>.btn-xs{padding:3px 8px;font-size:.75rem;}</style>@endpush
+@push('styles')
+<style>
+    .btn-xs { padding: 3px 8px; font-size: .75rem; }
+    .user-table td { word-break: break-word; }
+    .user-table .badge { white-space: nowrap; }
+</style>
+@endpush
 @endsection

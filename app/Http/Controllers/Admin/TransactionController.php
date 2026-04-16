@@ -281,6 +281,7 @@ class TransactionController extends Controller
                 'tanggal' => $t->created_at->format('d/m/Y'),
                 'pasien' => $t->patient ? $t->patient->nama : ($t->nama_pasien ?? '-'),
                 'total' => 'Rp ' . number_format($t->total_bayar, 0, ',', '.'),
+                'is_bpjs' => $t->potongan_bpjs > 0,
             ];
         });
 
@@ -294,6 +295,7 @@ class TransactionController extends Controller
             'harga_jual' => (int) str_replace('.', '', $request->harga_jual),
             'dp' => (int) str_replace('.', '', $request->dp),
             'potongan' => (int) str_replace('.', '', $request->potongan),
+            'potongan_bpjs' => (int) str_replace('.', '', $request->potongan_bpjs),
         ]);
 
         try {
@@ -373,6 +375,7 @@ class TransactionController extends Controller
                 'alamat_pasien' => $request->alamat,
                 'telp_pasien' => $request->telp,
                 'asal_resep' => $request->asal_resep,
+                'nama_dokter' => $request->nama_dokter,
 
                 'lensa' => $request->lensa,
                 'kode_frame' => $kodeFrame,
@@ -387,13 +390,14 @@ class TransactionController extends Controller
                 'harga_jual' => $request->harga_jual,
                 'dp' => $request->dp,
                 'potongan' => $request->potongan,
-                'sisa' => max(0, $request->harga_jual - $request->dp - $request->potongan),
+                'potongan_bpjs' => $request->potongan_bpjs,
+                'sisa' => max(0, $request->harga_jual - $request->dp - ($request->potongan ?? 0) - ($request->potongan_bpjs ?? 0)),
 
                 // Legacy fallback overrides mapping if empty (so show views don't break entirely)
                 'total_harga' => $request->harga_jual ?? 0,
-                'total_bayar' => max(0, ($request->harga_jual ?? 0) - ($request->potongan ?? 0)),
+                'total_bayar' => max(0, ($request->harga_jual ?? 0) - ($request->potongan ?? 0) - ($request->potongan_bpjs ?? 0)),
                 'bayar' => $request->dp ?? 0,
-                'diskon_nominal' => $request->potongan ?? 0,
+                'diskon_nominal' => ($request->potongan ?? 0) + ($request->potongan_bpjs ?? 0),
             ];
 
             if ($request->id) {

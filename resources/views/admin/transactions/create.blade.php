@@ -231,30 +231,7 @@
     </div>
 </div>
 
-<!-- Print Modal -->
-<div class="modal fade" id="printModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius:18px;">
-            <div class="modal-header border-0">
-                <h5 class="modal-title card-header-section mb-0"><i class="bi bi-printer"></i> Print Hub</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body text-center pb-4">
-                <p class="text-muted mb-4 small">Pilih format cetak untuk transaksi ini.</p>
-                <div class="d-grid gap-2 col-9 mx-auto">
-                    <button class="btn btn-outline-primary btn-action justify-content-center" onclick="doPrint('pesanan_besar')"><i class="bi bi-file-earmark-text"></i> Cetak Bon Pesanan Besar</button>
-                    <button class="btn btn-outline-primary btn-action justify-content-center" onclick="doPrint('bon_3_rangkap')"><i class="bi bi-file-earmark-ruled"></i> Cetak Bon (3 Rangkap)</button>
-                    <button class="btn btn-outline-primary btn-action justify-content-center" onclick="doPrint('fasetan')"><i class="bi bi-file-earmark-medical"></i> Cetak Bon Fasetan</button>
-                    <button class="btn btn-outline-primary btn-action justify-content-center" onclick="doPrint('garansi')"><i class="bi bi-patch-check"></i> Cetak Kartu Garansi</button>
-                    <button class="btn btn-outline-info btn-action justify-content-center mt-1 fw-bold" onclick="doPrint('formulir_bpjs')"><i class="bi bi-file-earmark-person"></i> Cetak Form BPJS</button>
-                    <button class="btn btn-outline-secondary btn-action justify-content-center mt-1" onclick="doPrint('bon_1_rangkap')"><i class="bi bi-receipt"></i> Cetak Bon Standar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<iframe id="printFrame" src=""></iframe>
+@include('admin.transactions.partials.modal-print')
 
 @endsection
 
