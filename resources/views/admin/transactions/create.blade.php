@@ -65,7 +65,7 @@
     .refraction-grid tbody td:first-child { padding-left: 12px; font-weight: 700; font-size: 0.8rem; }
     .refraction-grid input { border: none; background: #f8f9fa; border-radius: 8px; text-align: center; padding: 4px 6px; font-size: 0.82rem; width: 100%; min-width: 52px; transition: background 0.15s; }
     .refraction-grid input:focus { outline: none; background: #e8f0fe; }
-    .cart-panel { background: var(--glass-bg); backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: var(--radius-card); box-shadow: var(--shadow-soft); position: sticky; top: 1rem; }
+    .cart-panel { background: var(--glass-bg); backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: var(--radius-card); box-shadow: var(--shadow-soft); position: sticky; top: 4rem; }
     .cart-item-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
     .cart-item-row:last-child { border-bottom: none; }
     .cart-type-badge { font-size: 0.62rem; padding: 2px 7px; border-radius: 20px; font-weight: 600; flex-shrink: 0; white-space: nowrap; }
@@ -182,8 +182,16 @@
                 <div class="wizard-step" id="step-tab-4" onclick="tryGoStep(4)">
                     <div class="ws-num">4</div>
                     <div class="ws-text">
+                        <div class="ws-title">Data Tambahan</div>
+                        <div class="ws-sub">Data lainnya</div>
+                    </div>
+                </div>
+                <div class="ws-connector" id="conn-4"></div>
+                <div class="wizard-step" id="step-tab-5" onclick="tryGoStep(5)">
+                    <div class="ws-num">5</div>
+                    <div class="ws-text">
                         <div class="ws-title">Checkout</div>
-                        <div class="ws-sub">Pembayaran</div>
+                        <div class="ws-sub">Preview Transaksi</div>
                     </div>
                 </div>
             </div>
@@ -194,7 +202,8 @@
             @include('admin.transactions.partials.step1-transaction')
             @include('admin.transactions.partials.step2-patient')
             @include('admin.transactions.partials.step3-product')
-            @include('admin.transactions.partials.step4-checkout')
+            @include('admin.transactions.partials.step4-added-data')
+            @include('admin.transactions.partials.step5-checkout')
 
         </form>
     </div>

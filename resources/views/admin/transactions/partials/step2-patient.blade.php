@@ -38,7 +38,11 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="col-12" id="no_bpjs_container" style="display: none;">
+                        <div class="col-12" id="nik_container">
+                            <label class="form-label">NIK</label>
+                            <input type="text" name="nik" id="nik" class="form-control form-control-sm" placeholder="000...">
+                        </div>
+                        <div class="col-12" id="no_bpjs_container">
                             <label class="form-label">No BPJS</label>
                             <input type="text" name="no_bpjs" id="no_bpjs" class="form-control form-control-sm" placeholder="000...">
                         </div>
@@ -101,6 +105,20 @@
 
                     <div id="history-tag-container" class="mb-2 d-none">
                         <span class="history-tag"><i class="bi bi-info-circle me-1"></i>Data dari histori — bisa diubah langsung</span>
+                    </div>
+
+                    <div id="patient-history-section" class="mb-3 d-none">
+                        <div class="glass-card">
+                            <div class="card-body p-3">
+                                <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                                    <div>
+                                        <h6 class="card-header-section mb-0">Riwayat Pemeriksaan</h6>
+                                        <small class="text-muted">Tersedia <span id="history-count">0</span> catatan terakhir.</small>
+                                    </div>
+                                </div>
+                                <div id="patient-history-list" style="max-height: 300px; overflow-y: auto;"></div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="refraction-grid">

@@ -10,6 +10,15 @@ function parseAngka(val) {
 function formatRibuan(val) {
     return new Intl.NumberFormat('id-ID').format(val);
 }
+function formatDateInput(value) {
+    if (!value) return '—';
+    const [year, month, day] = value.split('-');
+    return day && month && year ? `${day}/${month}/${year}` : value;
+}
+function formatFieldText(value, fallback = '—') {
+    const text = String(value || '').trim();
+    return text === '' ? fallback : text;
+}
 function toast(icon, title, text = '') {
     Swal.fire({ icon, title, text, timer: 1400, showConfirmButton: false, toast: false });
 }
@@ -25,13 +34,14 @@ function snackbar(msg, type = 'success') {
    WIZARD STATE
 ========================================================== */
 let currentStep = 1;
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 5;
 
 const STEP_LABELS = {
     1: 'Step 1: Transaksi',
     2: 'Step 2: Pasien & Resep',
     3: 'Step 3: Produk',
-    4: 'Step 4: Checkout',
+    4: 'Step 4: Data',
+    5: 'Step 5: Checkout',
 };
 
 function updateStepUI(step) {
@@ -60,14 +70,14 @@ function updateStepUI(step) {
         1: '#no_transaksi',
         2: '#ac_pasien',
         3: '#new_item_name',
-        4: '#input_harga_jual',
+        5: '#input_harga_jual',
     };
     const focusEl = document.querySelector(focuses[step]);
     if (focusEl) setTimeout(() => focusEl.focus(), 180);
 
     currentStep = step;
 
-    if (step === 4) buildCheckoutSummary();
+    if (step === 5) buildCheckoutSummary();
 }
 
 function goStep(n) {
@@ -88,7 +98,7 @@ function tryGoStep(n) {
 function goNextStep(fromStep) {
     if (!validateStep(fromStep)) return;
     
-    // Auto add BPJS items if moving from Step 3 to 4 and cart is empty
+    // Auto add BPJS items if moving from Step 3 to 5 and cart is empty
     if (fromStep === 3) {
         if (document.getElementById('bpjs').checked && cart.length === 0) {
             // Cek apakah ada frame/lensa terpilih di ui bpjs
@@ -175,7 +185,7 @@ function validateStep(step) {
         return true;
     }
 
-    if (step === 4) {
+    if (step === 5) {
         const dp = parseAngka(document.getElementById('input_dp').value);
         const harga = parseAngka(document.getElementById('input_harga_jual').value);
         if (dp > harga && harga > 0) {
@@ -664,47 +674,205 @@ function checkPriceLow() {
         this.value = formatRibuan(parseAngka(this.value));
         calculateSisa();
         checkPriceLow();
+        if (currentStep === 5) buildCheckoutSummary();
     });
 });
 
 function buildCheckoutSummary() {
-    const noTrx    = document.querySelector('input[name="no_transaksi"]').value || '—';
-    const namaPas  = document.getElementById('nama_pasien').value.trim() || 'UMUM';
-    const odSph    = document.getElementById('od_sph').value;
-    const osSph    = document.getElementById('os_sph').value;
-    const refStr   = (odSph || osSph) ? `OD ${odSph || '?'} / OS ${osSph || '?'}` : '—';
+    const noTrx      = formatFieldText(document.querySelector('input[name="no_transaksi"]').value, '—');
+    const tglFaktur  = formatDateInput(document.getElementById('tgl_faktur').value);
+    const typeFaktur = document.getElementById('bpjs').checked ? 'BPJS' : 'Umum';
+    const namaPas    = formatFieldText(document.getElementById('nama_pasien').value, 'UMUM');
+    const telp       = formatFieldText(document.querySelector('input[name="telp"]').value, '—');
+    const noBpjsEl   = document.getElementById('no_bpjs');
+    const noBpjs     = noBpjsEl ? formatFieldText(noBpjsEl.value, '—') : '—';
+    const alamat     = formatFieldText(document.querySelector('textarea[name="alamat"]').value, '—');
+    const asalResep  = formatFieldText(document.querySelector('input[name="asal_resep"]').value, '—');
+    const namaDokter = formatFieldText(document.getElementById('nama_dokter').value, '—');
+    const tglResep   = formatDateInput(document.querySelector('input[name="tgl_resep"]').value);
+    const catatanResep = formatFieldText(document.querySelector('textarea[name="catatan_resep"]').value, '—');
+    const lensaKet   = formatFieldText(document.getElementById('lensa_ket').value, '—');
+    const ketFrame   = formatFieldText(document.querySelector('input[name="keterangan_frame"]').value, '—');
+
+    const odSph  = formatFieldText(document.getElementById('od_sph').value, '—');
+    const odCyl  = formatFieldText(document.getElementById('od_cyl').value, '—');
+    const odAxis = formatFieldText(document.getElementById('od_axis').value, '—');
+    const odAdd  = formatFieldText(document.getElementById('od_add').value, '—');
+    const odMpd  = formatFieldText(document.getElementById('od_mpd').value, '—');
+    const odPrism = formatFieldText(document.getElementById('od_prism').value, '—');
+    const osSph  = formatFieldText(document.getElementById('os_sph').value, '—');
+    const osCyl  = formatFieldText(document.getElementById('os_cyl').value, '—');
+    const osAxis = formatFieldText(document.getElementById('os_axis').value, '—');
+    const osAdd  = formatFieldText(document.getElementById('os_add').value, '—');
+    const osMpd  = formatFieldText(document.getElementById('os_mpd').value, '—');
+    const osPrism = formatFieldText(document.getElementById('os_prism').value, '—');
+
+    const lab                 = formatFieldText(document.querySelector('input[name="lab"]').value, '—');
+    const tglOrder            = formatDateInput(document.querySelector('input[name="tgl_order"]').value);
+    const tglLensaDatang      = formatDateInput(document.querySelector('input[name="tgl_lensa_datang"]').value);
+    const tglFaset            = formatDateInput(document.querySelector('input[name="tgl_faset"]').value);
+    const tempatFaset         = formatFieldText(document.querySelector('input[name="tempat_faset"]').value, '—');
+    const tglSelesaiFaset     = formatDateInput(document.querySelector('input[name="tgl_selesai_faset"]').value);
+    const tglJanjiCustomer    = formatDateInput(document.querySelector('input[name="tgl_janji_customer"]').value);
+    const diambil             = document.querySelector('input[name="diambil"]:checked')?.value === '1' ? 'Sudah' : 'Belum';
+    const tglDiambil          = formatDateInput(document.querySelector('input[name="tgl_diambil"]').value);
+    const catatan             = formatFieldText(document.querySelector('textarea[name="catatan"]').value, '—');
 
     document.getElementById('checkout-summary-badges').innerHTML = `
         <div class="col-auto"><span class="badge bg-primary-subtle text-primary py-1">${noTrx}</span></div>
         <div class="col-auto"><span class="badge bg-success-subtle text-success py-1"><i class="bi bi-person me-1"></i>${namaPas}</span></div>
-        <div class="col-auto"><span class="badge bg-secondary-subtle text-secondary py-1"><i class="bi bi-eye me-1"></i>${refStr}</span></div>
+        <div class="col-auto"><span class="badge bg-secondary-subtle text-secondary py-1"><i class="bi bi-calendar-event me-1"></i>${typeFaktur}</span></div>
+    `;
+
+    document.getElementById('checkout-preview-invoice').innerHTML = `
+        <div class="border rounded-3 p-3 bg-white">
+            <div class="row g-2">
+                <div class="col-md-6">
+                    <div class="text-muted small">No Faktur</div>
+                    <div class="fw-semibold">${noTrx}</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-muted small">Tanggal Faktur</div>
+                    <div>${tglFaktur}</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-muted small">Tipe Transaksi</div>
+                    <div>${typeFaktur}</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-muted small">Total Keranjang</div>
+                    <div>Rp ${formatRibuan(cart.reduce((sum, item) => sum + item.qty * item.harga, 0))}</div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('checkout-preview-patient').innerHTML = `
+        <div class="border rounded-3 p-3 bg-white">
+            <div class="mb-2 text-muted small">Data Pasien & Resep</div>
+            <div class="row g-2">
+                <div class="col-sm-6"><strong>Nama Pasien</strong><div>${namaPas}</div></div>
+                <div class="col-sm-6"><strong>No. Telp</strong><div>${telp}</div></div>
+                <div class="col-sm-6"><strong>No. BPJS</strong><div>${noBpjs}</div></div>
+                <div class="col-sm-6"><strong>Alamat</strong><div>${alamat}</div></div>
+                <div class="col-sm-6"><strong>Asal Resep</strong><div>${asalResep}</div></div>
+                <div class="col-sm-6"><strong>Dokter / Klinik</strong><div>${namaDokter}</div></div>
+                <div class="col-sm-6"><strong>Tanggal Resep</strong><div>${tglResep}</div></div>
+                <div class="col-sm-6"><strong>Catatan Resep</strong><div>${catatanResep}</div></div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('checkout-preview-resep').innerHTML = `
+        <div class="border rounded-3 p-3 bg-white">
+            <div class="mb-2 text-muted small">Refraksi & Keterangan Lensa</div>
+            <div class="row g-2">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="text-muted small">OD</div>
+                        <div class="text-muted small">SPH / CYL / AXIS / ADD / MPD / PRISM</div>
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <span class="badge bg-light text-dark">${odSph}</span>
+                        <span class="badge bg-light text-dark">${odCyl}</span>
+                        <span class="badge bg-light text-dark">${odAxis}</span>
+                        <span class="badge bg-light text-dark">${odAdd}</span>
+                        <span class="badge bg-light text-dark">${odMpd}</span>
+                        <span class="badge bg-light text-dark">${odPrism}</span>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="text-muted small">OS</div>
+                        <div class="text-muted small">SPH / CYL / AXIS / ADD / MPD / PRISM</div>
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <span class="badge bg-light text-dark">${osSph}</span>
+                        <span class="badge bg-light text-dark">${osCyl}</span>
+                        <span class="badge bg-light text-dark">${osAxis}</span>
+                        <span class="badge bg-light text-dark">${osAdd}</span>
+                        <span class="badge bg-light text-dark">${osMpd}</span>
+                        <span class="badge bg-light text-dark">${osPrism}</span>
+                    </div>
+                </div>
+                <div class="col-sm-6"><strong>Lensa</strong><div>${lensaKet}</div></div>
+                <div class="col-sm-6"><strong>Keterangan Ukuran</strong><div>${ketFrame}</div></div>
+            </div>
+        </div>
     `;
 
     const listEl = document.getElementById('checkout-item-list');
     if (cart.length === 0) {
-        listEl.innerHTML = '<div class="text-muted text-center small py-2">Tidak ada item</div>';
+        listEl.innerHTML = '<div class="text-muted text-center small py-3">Tidak ada item di keranjang.</div>';
     } else {
-        listEl.innerHTML = cart.map(item => `
-            <div class="d-flex align-items-center gap-2 py-1 border-bottom" style="font-size:0.8rem">
-                <span class="cart-type-badge ${getCartTypeBadge(item.type)}" style="font-size:0.62rem">${item.type}</span>
-                <span class="flex-grow-1">${item.nama}</span>
-                <span class="text-muted">×${item.qty}</span>
-                <strong>Rp ${formatRibuan(item.qty * item.harga)}</strong>
-            </div>
-        `).join('');
+        listEl.innerHTML = `
+            <div class="mb-2 text-muted small">Produk yang dipilih</div>
+            ${cart.map(item => `
+                <div class="d-flex align-items-start gap-2 py-2 border-bottom" style="font-size:0.88rem">
+                    <div class="cart-type-badge ${getCartTypeBadge(item.type)}" style="font-size:0.65rem">${item.type}</div>
+                    <div class="flex-grow-1">
+                        <div class="fw-semibold">${item.nama}</div>
+                        <div class="text-muted" style="font-size:0.82rem;">${formatFieldText(item.seri, '')}${item.warna ? ' • ' + item.warna : ''}${item.keterangan ? ' • ' + item.keterangan : ''}</div>
+                    </div>
+                    <div class="text-end" style="min-width:96px;">
+                        <div class="text-muted small">×${item.qty}</div>
+                        <strong>Rp ${formatRibuan(item.qty * item.harga)}</strong>
+                    </div>
+                </div>
+            `).join('')}
+        `;
     }
 
     const cartTotal = cart.reduce((s, i) => s + i.qty * i.harga, 0);
+    const hargaJual = parseAngka(inputHargaJual.value);
+    const potongan = parseAngka(inputPotongan.value);
+    const potonganBpjs = parseAngka(inputPotonganBpjs.value);
+    const dp = parseAngka(inputDp.value);
+    const sisa = parseAngka(inputSisa.value);
+
+    document.getElementById('checkout-preview-payments').innerHTML = `
+        <div class="border rounded-3 p-3 bg-white">
+            <div class="mb-2 text-muted small">Rincian Pembayaran</div>
+            <div class="row g-2">
+                <div class="col-sm-6"><strong>Total Keranjang</strong><div>Rp ${formatRibuan(cartTotal)}</div></div>
+                <div class="col-sm-6"><strong>Harga Jual</strong><div>Rp ${formatRibuan(hargaJual)}</div></div>
+                <div class="col-sm-6"><strong>Potongan</strong><div>Rp ${formatRibuan(potongan)}</div></div>
+                <div class="col-sm-6"><strong>Potongan BPJS</strong><div>Rp ${formatRibuan(potonganBpjs)}</div></div>
+                <div class="col-sm-6"><strong>DP</strong><div>Rp ${formatRibuan(dp)}</div></div>
+                <div class="col-sm-6"><strong>Sisa Tagihan</strong><div>Rp ${formatRibuan(sisa)}</div></div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('checkout-preview-additional').innerHTML = `
+        <div class="border rounded-3 p-3 bg-white">
+            <div class="mb-2 text-muted small">Data Tambahan</div>
+            <div class="row g-2">
+                <div class="col-sm-4"><strong>Lab</strong><div>${lab}</div></div>
+                <div class="col-sm-4"><strong>Tgl Order</strong><div>${tglOrder}</div></div>
+                <div class="col-sm-4"><strong>Tgl Lensa Datang</strong><div>${tglLensaDatang}</div></div>
+                <div class="col-sm-4"><strong>Tgl Faset</strong><div>${tglFaset}</div></div>
+                <div class="col-sm-4"><strong>Tempat Faset</strong><div>${tempatFaset}</div></div>
+                <div class="col-sm-4"><strong>Tgl Selesai Faset</strong><div>${tglSelesaiFaset}</div></div>
+                <div class="col-sm-4"><strong>Tgl Janji Customer</strong><div>${tglJanjiCustomer}</div></div>
+                <div class="col-sm-4"><strong>Status Ambil</strong><div>${diambil}</div></div>
+                <div class="col-sm-4"><strong>Tgl Diambil</strong><div>${tglDiambil}</div></div>
+                <div class="col-12"><strong>Catatan</strong><div>${catatan}</div></div>
+            </div>
+        </div>
+    `;
+
     document.getElementById('finance-cart-summary').innerHTML = `
         <div class="s-row"><span class="s-label">Total item keranjang</span><span class="s-val">Rp ${formatRibuan(cartTotal)}</span></div>
         <div class="s-divider"></div>
-        <div class="s-row"><span class="s-label">${cart.length} item</span><span class="s-val">${cart.map(i=>i.type).join(', ')}</span></div>
+        <div class="s-row"><span class="s-label">${cart.length} item</span><span class="s-val">${cart.map(i => i.type).join(', ') || '—'}</span></div>
     `;
 
-    if (parseAngka(inputHargaJual.value) === 0) {
+    if (hargaJual === 0) {
         inputHargaJual.value = formatRibuan(cartTotal);
         lastAutoHarga = cartTotal;
     }
+
     calculateSisa();
     checkPriceLow();
 }
@@ -819,8 +987,6 @@ function fillForm(trx) {
     // Step 1
     sv('input[name="no_transaksi"]',  trx.no_transaksi || '');
     sv('input[name="tgl_order"]',     trx.tgl_order    || '{{ date('Y-m-d') }}');
-    sv('input[name="no_legalisasi"]', trx.no_legalisasi || '');
-    sv('input[name="tgl_legalisasi"]',trx.tgl_legalisasi || '');
     sv('input[name="tgl_faset"]',     trx.tgl_faset    || '');
     sv('input[name="lab"]',           trx.lab          || '');
     sv('input[name="tempat_faset"]',  trx.tempat_faset || '');
@@ -887,7 +1053,7 @@ function fillForm(trx) {
         });
     }
 
-    // Step 4 — Finance
+    // Step 5 — Finance
     const hj = parseFloat(trx.harga_jual || trx.total_harga || 0);
     lastAutoHarga = 0; // reset so it doesn't lock
     inputHargaJual.value = formatRibuan(hj);
@@ -1043,7 +1209,7 @@ function printBpjsForm() {
 
 document.getElementById('pos-form').addEventListener('submit', function (e) {
     e.preventDefault();
-    for (let s = 1; s <= 4; s++) {
+    for (let s = 1; s <= 5; s++) {
         if (!validateStep(s)) { goStep(s); return; }
     }
 
