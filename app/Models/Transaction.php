@@ -61,7 +61,7 @@ class Transaction extends Model
         'lensa', 'kode_frame', 'nama_produk', 'keterangan_frame', 'seri', 'warna',
 
         // Snapshot Produksi Lab
-        'no_legalisasi', 'tgl_legalisasi', 'tgl_faset', 'lab', 'tempat_faset',
+        'tgl_faset', 'lab', 'tempat_faset',
         'tgl_datang_faset', 'tgl_selesai_faset',
 
         // JSON/Extra

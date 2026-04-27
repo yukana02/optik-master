@@ -44,7 +44,6 @@ class MedicalRecordController extends Controller
 
     public function store(Request $request)
     {
-        // dd($request->all());
         $validated = $request->validate([
             'patient_id'        => 'required|exists:patients,id',
             'nama_dokter'       => 'required|string|max:255',

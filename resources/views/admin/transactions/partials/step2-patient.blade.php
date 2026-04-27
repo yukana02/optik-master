@@ -38,11 +38,11 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="col-12" id="nik_container">
+                        <div class="col-md-6" id="nik_container">
                             <label class="form-label">NIK</label>
                             <input type="text" name="nik" id="nik" class="form-control form-control-sm" placeholder="000...">
                         </div>
-                        <div class="col-12" id="no_bpjs_container">
+                        <div class="col-md-6" id="no_bpjs_container">
                             <label class="form-label">No BPJS</label>
                             <input type="text" name="no_bpjs" id="no_bpjs" class="form-control form-control-sm" placeholder="000...">
                         </div>
@@ -52,10 +52,6 @@
                         <div class="col-md-6">
                             <label class="form-label">No. Telepon</label>
                             <input type="text" name="telp" class="form-control form-control-sm" placeholder="08xx-xxxx-xxxx">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Asal Resep / Dokter</label>
-                            <input type="text" name="asal_resep" class="form-control form-control-sm" placeholder="dr. Nama / Klinik...">
                         </div>
                         <div class="col-12">
                             <label class="form-label">Alamat</label>

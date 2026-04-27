@@ -367,6 +367,7 @@ setupAC(
     p => `<b>${p.nama}</b> <span class="text-muted small">${p.no_bpjs || ''} ${p.no_hp || ''}</span>`,
     p => {
         document.getElementById('patient_id').value  = p.id;
+        document.getElementById('nik').value      = p.nik || '';
         document.getElementById('no_bpjs').value      = p.no_bpjs || '';
         document.getElementById('nama_pasien').value  = p.nama    || '';
         document.querySelector('input[name="telp"]').value    = p.no_hp   || '';
@@ -385,6 +386,7 @@ setupAC(
 function clearPatient() {
     document.getElementById('patient_id').value  = '';
     document.getElementById('ac_pasien').value    = '';
+    document.getElementById('nik').value      = '';
     document.getElementById('no_bpjs').value      = '';
     document.getElementById('nama_pasien').value  = '';
     document.querySelector('input[name="telp"]').value    = '';
@@ -684,10 +686,11 @@ function buildCheckoutSummary() {
     const typeFaktur = document.getElementById('bpjs').checked ? 'BPJS' : 'Umum';
     const namaPas    = formatFieldText(document.getElementById('nama_pasien').value, 'UMUM');
     const telp       = formatFieldText(document.querySelector('input[name="telp"]').value, '—');
+    const nikEl   = document.getElementById('nik');
+    const nik     = nikEl ? formatFieldText(nikEl.value, '—') : '—';
     const noBpjsEl   = document.getElementById('no_bpjs');
     const noBpjs     = noBpjsEl ? formatFieldText(noBpjsEl.value, '—') : '—';
     const alamat     = formatFieldText(document.querySelector('textarea[name="alamat"]').value, '—');
-    const asalResep  = formatFieldText(document.querySelector('input[name="asal_resep"]').value, '—');
     const namaDokter = formatFieldText(document.getElementById('nama_dokter').value, '—');
     const tglResep   = formatDateInput(document.querySelector('input[name="tgl_resep"]').value);
     const catatanResep = formatFieldText(document.querySelector('textarea[name="catatan_resep"]').value, '—');
@@ -753,9 +756,9 @@ function buildCheckoutSummary() {
             <div class="row g-2">
                 <div class="col-sm-6"><strong>Nama Pasien</strong><div>${namaPas}</div></div>
                 <div class="col-sm-6"><strong>No. Telp</strong><div>${telp}</div></div>
+                <div class="col-sm-6"><strong>No. NIK</strong><div>${nik}</div></div>
                 <div class="col-sm-6"><strong>No. BPJS</strong><div>${noBpjs}</div></div>
                 <div class="col-sm-6"><strong>Alamat</strong><div>${alamat}</div></div>
-                <div class="col-sm-6"><strong>Asal Resep</strong><div>${asalResep}</div></div>
                 <div class="col-sm-6"><strong>Dokter / Klinik</strong><div>${namaDokter}</div></div>
                 <div class="col-sm-6"><strong>Tanggal Resep</strong><div>${tglResep}</div></div>
                 <div class="col-sm-6"><strong>Catatan Resep</strong><div>${catatanResep}</div></div>
@@ -1000,12 +1003,13 @@ function fillForm(trx) {
 
     // Step 2 — Pasien
     const p = trx.patient || {};
+    const selectedNik = p.nik || trx.nik || '';
+    sv('input[name="nik"]',    selectedNik);
     const selectedBpjs = p.no_bpjs || trx.no_bpjs || '';
     sv('input[name="no_bpjs"]',    selectedBpjs);
     sv('input[name="nama"]',       p.nama     || trx.nama_pasien || '');
     sv('textarea[name="alamat"]',  p.alamat   || trx.alamat_pasien || '');
     sv('input[name="telp"]',       p.no_hp    || trx.telp_pasien || '');
-    sv('input[name="asal_resep"]', trx.asal_resep || '');
     document.getElementById('nama_pasien').value = p.nama || trx.nama_pasien || '';
     document.getElementById('no_bpjs_container').style.display = selectedBpjs ? '' : 'none';
     if (p.nama || trx.nama_pasien) {

@@ -210,7 +210,7 @@ class PatientController extends Controller
     public function latestRefraction(Patient $patient)
     {
         $patient->load(['medicalRecords' => function ($query) {
-            $query->with('dokter')->latest('tanggal_kunjungan')->take(5);
+            $query->latest('tanggal_kunjungan')->take(5);
         }]);
 
         $latest = $patient->medicalRecords->first();
@@ -219,7 +219,7 @@ class PatientController extends Controller
             return [
                 'id' => $rm->id,
                 'tanggal_kunjungan' => $rm->tanggal_kunjungan->format('d M Y'),
-                'dokter' => $rm->dokter->name ?? '-',
+                'dokter' => $rm->nama_dokter ?? '-',
                 'keluhan' => $rm->keluhan,
                 'od_sph' => $rm->od_sph,
                 'od_cyl' => $rm->od_cyl,

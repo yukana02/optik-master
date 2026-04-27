@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\{Transaction, TransactionItem, Patient, Product, MedicalRecord};
+use App\Services\MedicalRecordService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -290,6 +291,7 @@ class TransactionController extends Controller
 
     public function posSave(Request $request)
     {
+        // dd($request->all());
         // Remove dots from currency
         $request->merge([
             'harga_jual' => (int) str_replace('.', '', $request->harga_jual),
@@ -310,6 +312,7 @@ class TransactionController extends Controller
                 if ($patient && $request->nama) {
                     $patient->update([
                         'nama' => $request->nama,
+                        'nik' => $request->nik,
                         'no_bpjs' => $request->no_bpjs,
                         'no_hp' => $request->telp,
                         'alamat' => $request->alamat,
@@ -324,11 +327,37 @@ class TransactionController extends Controller
                     $patient = Patient::create([
                         'no_rm' => Patient::generateNoRM(),
                         'nama' => $request->nama,
+                        'nik' => $request->nik,
                         'no_bpjs' => $request->no_bpjs,
                         'no_hp' => $request->telp,
                         'alamat' => $request->alamat,
                     ]);
                 }
+            }
+
+            // Handle Medical Record creation if patient exists and prescription data is provided
+            if ($patient) {
+                $service = new MedicalRecordService();
+
+                $service->createIfDifferent($patient->id, [
+                    'patient_id' => $patient->id,
+                    'tgl_resep' => $request->tgl_resep,
+                    'nama_dokter' => $request->nama_dokter,
+
+                    'od_sph' => $request->od_sph,
+                    'od_cyl' => $request->od_cyl,
+                    'od_axis' => $request->od_axis,
+                    'od_add' => $request->od_add,
+                    'od_mpd' => $request->od_mpd,
+                    'od_prism' => $request->od_prism,
+
+                    'os_sph' => $request->os_sph,
+                    'os_cyl' => $request->os_cyl,
+                    'os_axis' => $request->os_axis,
+                    'os_add' => $request->os_add,
+                    'os_mpd' => $request->os_mpd,
+                    'os_prism' => $request->os_prism,
+                ]);
             }
 
             // Product input array handling (first item to transaction fields)
@@ -347,8 +376,6 @@ class TransactionController extends Controller
 
                 // Fields
                 'tgl_order' => $request->tgl_order ?? date('Y-m-d'),
-                'no_legalisasi' => $request->no_legalisasi,
-                'tgl_legalisasi' => $request->tgl_legalisasi,
                 'tgl_faset' => $request->tgl_faset,
                 'lab' => $request->lab,
                 'tempat_faset' => $request->tempat_faset,
@@ -370,6 +397,7 @@ class TransactionController extends Controller
                 'os_mpd' => $request->os_mpd,
                 'os_prism' => $request->os_prism,
 
+                'nik' => $request->nik,
                 'no_bpjs' => $request->no_bpjs,
                 'nama_pasien' => $request->nama,
                 'alamat_pasien' => $request->alamat,
@@ -520,6 +548,8 @@ class TransactionController extends Controller
     {
         $q = $request->q;
         $patients = Patient::where('no_bpjs', 'like', "%{$q}%")
+            ->orWhere('no_rm', 'like', "%{$q}%")
+            ->orWhere('nik', 'like', "%{$q}%")
             ->orWhere('nama', 'like', "%{$q}%")
             ->orWhere('no_hp', 'like', "%{$q}%")
             ->take(10)->get();
