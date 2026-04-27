@@ -5,12 +5,13 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\{MedicalRecord, Patient, User};
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class MedicalRecordController extends Controller
 {
     public function index(Request $request)
     {
-        $query = MedicalRecord::with(['patient', 'dokter']);
+        $query = MedicalRecord::with(['patient', 'createdBy']);
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -43,9 +44,10 @@ class MedicalRecordController extends Controller
 
     public function store(Request $request)
     {
+        // dd($request->all());
         $validated = $request->validate([
             'patient_id'        => 'required|exists:patients,id',
-            'user_id'           => 'required|exists:users,id',
+            'nama_dokter'       => 'required|string|max:255',
             'tanggal_kunjungan' => 'required|date',
             'keluhan'           => 'nullable|string|max:255',
             // OD
@@ -69,6 +71,8 @@ class MedicalRecordController extends Controller
             'catatan'           => 'nullable|string',
         ]);
 
+        $validated['user_id'] = Auth::id();
+
         MedicalRecord::create($validated);
 
         return redirect()->route('medical-records.index')
@@ -77,7 +81,7 @@ class MedicalRecordController extends Controller
 
     public function show(MedicalRecord $medicalRecord)
     {
-        $medicalRecord->load(['patient', 'dokter', 'transaction.items.product']);
+        $medicalRecord->load(['patient', 'createdBy', 'transaction.items.product']);
         return view('admin.medical-records.show', compact('medicalRecord'));
     }
 
@@ -92,7 +96,7 @@ class MedicalRecordController extends Controller
     {
         $validated = $request->validate([
             'patient_id'        => 'required|exists:patients,id',
-            'user_id'           => 'required|exists:users,id',
+            'nama_dokter'       => 'required|string|max:255',
             'tanggal_kunjungan' => 'required|date',
             'keluhan'           => 'nullable|string|max:255',
             'od_sph' => 'nullable|numeric|between:-30,30',

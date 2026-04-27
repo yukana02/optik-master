@@ -33,7 +33,7 @@
                     <th>Pasien</th>
                     <th>OD (Kanan)</th>
                     <th>OS (Kiri)</th>
-                    <th>Dokter</th>
+                    <th>Created By</th>
                     <th>Aksi</th>
                 </tr>
             </thead>
@@ -56,7 +56,7 @@
                         <span class="text-muted">SPH</span> {{ $rm->formatResep($rm->os_sph) }}
                         <span class="text-muted ms-1">CYL</span> {{ $rm->formatResep($rm->os_cyl) }}
                     </td>
-                    <td class="text-muted small">{{ $rm->dokter->name ?? '-' }}</td>
+                    <td class="text-muted small">{{ $rm->createdBy->name ?? '-' }}</td>
                     <td>
                         <div class="d-flex gap-1">
                             <a href="{{ route('medical-records.show', $rm) }}" class="btn btn-xs btn-outline-info" title="Detail">

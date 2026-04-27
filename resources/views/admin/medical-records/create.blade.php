@@ -27,17 +27,20 @@
                                 @error('patient_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label fw-semibold">Dokter / Pemeriksa <span
-                                        class="text-danger">*</span></label>
-                                <select name="user_id" class="form-select @error('user_id') is-invalid @enderror" required>
-                                    <option value="">-- Pilih Dokter --</option>
-                                    @foreach($dokters as $d)
-                                        <option value="{{ $d->id }}" {{ old('user_id', auth()->id()) == $d->id ? 'selected' : '' }}>
-                                            {{ $d->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('user_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                <label class="form-label fw-semibold">
+                                    Dokter / Pemeriksa <span class="text-danger">*</span>
+                                </label>
+
+                                <input type="text"
+                                    name="nama_dokter"
+                                    class="form-control @error('nama_dokter') is-invalid @enderror"
+                                    value="{{ old('nama_dokter') }}"
+                                    placeholder="Masukkan nama dokter"
+                                    required>
+
+                                @error('nama_dokter')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label fw-semibold">Tanggal Kunjungan <span

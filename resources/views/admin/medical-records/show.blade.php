@@ -31,7 +31,7 @@
         <div class="row">
             <div class="col-md-6">
                 <table class="table table-sm table-borderless mb-0">
-                    <tr><td class="text-muted ps-0" style="width:120px">Dokter</td><td>: {{ $medicalRecord->dokter->name ?? '-' }}</td></tr>
+                    <tr><td class="text-muted ps-0" style="width:120px">Dokter</td><td>: {{ $medicalRecord->nama_dokter ?? '-' }}</td></tr>
                     <tr><td class="text-muted ps-0">Keluhan</td><td>: {{ $medicalRecord->keluhan ?? '-' }}</td></tr>
                     <tr><td class="text-muted ps-0">Jenis Lensa</td><td>: {{ $medicalRecord->jenis_lensa ?? '-' }}</td></tr>
                 </table>
