@@ -20,6 +20,8 @@ class PatientFactory extends Factory
         return [
             'no_rm' => 'RM-' . $this->faker->unique()->numerify('#####'),
             'nama' => $this->faker->name(),
+            'nik' => $this->faker->unique()->numerify('################'),
+            'no_bpjs' => $this->faker->boolean(60) ? $this->faker->unique()->numerify('################') : null,
             'tanggal_lahir' => $this->faker->date(),
             'jenis_kelamin' => $this->faker->randomElement(['L', 'P']),
             'no_hp' => $this->faker->phoneNumber(),

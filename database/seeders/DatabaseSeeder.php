@@ -176,5 +176,7 @@ class DatabaseSeeder extends Seeder
                 // UserDoctorSeeder::class,
             OptikUserSeeder::class,
         ]);
+
+        Patient::factory()->count(100)->create();
     }
 }
