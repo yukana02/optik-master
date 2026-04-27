@@ -17,6 +17,7 @@ class Patient extends Model
         'jenis_kelamin',
         'no_hp',
         'no_bpjs',
+        'nik',
         'email',
         'alamat',
         'riwayat_penyakit',

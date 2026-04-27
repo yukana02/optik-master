@@ -27,13 +27,17 @@
                     <td>{{ $patient->tanggal_lahir ? $patient->tanggal_lahir->format('d M Y') . ' (' . $patient->umur . ' th)' : '-' }}</td>
                 </tr>
                 <tr>
-                    <td class="text-muted ps-0">No. HP</td>
-                    <td>{{ $patient->no_hp ?? '-' }}</td>
+                    <td class="text-muted ps-0">No. NIK</td>
+                    <td>{{ $patient->nik ?? '-' }}</td>
                 </tr>
                 <tr>
                     <td class="text-muted ps-0">No. BPJS</td>
                     <td>{{ $patient->no_bpjs ?? '-' }}</td>
                 </tr>
+                <tr>
+                    <td class="text-muted ps-0">No. HP</td>
+                    <td>{{ $patient->no_hp ?? '-' }}</td>
+                </tr>                
                 <tr>
                     <td class="text-muted ps-0">Email</td>
                     <td>{{ $patient->email ?? '-' }}</td>
