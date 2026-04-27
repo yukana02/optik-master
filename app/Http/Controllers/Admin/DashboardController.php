@@ -43,7 +43,7 @@ class DashboardController extends Controller
             ->get();
 
         // Rekam medis terbaru
-        $rekamTerbaru = MedicalRecord::with(['patient', 'dokter'])
+        $rekamTerbaru = MedicalRecord::with(['patient'])
             ->latest()
             ->take(5)
             ->get();
