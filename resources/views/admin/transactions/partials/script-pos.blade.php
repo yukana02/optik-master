@@ -604,6 +604,14 @@ function addItemToCart() {
     const qty      = Math.max(1, parseInt(document.getElementById('new_item_qty').value) || 1);
     const prodId   = document.querySelector('input[name="product_id[]"]').value;
 
+    // Validasi untuk BPJS: maksimal 1 Frame dan 1 Lensa
+    if (document.getElementById('bpjs').checked && (type === 'Frame' || type === 'Lensa')) {
+        if (cart.some(i => i.type === type)) {
+            snackbar(`Maksimal 1 ${type} untuk transaksi BPJS`, 'warning');
+            return;
+        }
+    }
+
     if (!nama) {
         document.getElementById('new_item_name').classList.add('is-invalid');
         document.getElementById('new_item_name').focus();

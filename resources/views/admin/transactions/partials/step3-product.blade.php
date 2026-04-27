@@ -13,10 +13,8 @@
                     <h6 class="card-header-section">
                         <i class="bi bi-box-seam"></i> Tambah Produk (UMUM)
                     </h6>
-
                     
-
-                    <input type="hidden" id="new_item_type" value="Frame">
+                    {{-- <input type="hidden" id="new_item_type" value="Frame"> --}}
 
                     <div id="product-entry">
                         <div class="row g-2">
@@ -33,6 +31,14 @@
                             <div class="col-12">
                                 <label class="form-label">Nama Produk <span class="text-danger">*</span></label>
                                 <input type="text" id="new_item_name" class="form-control form-control-sm" placeholder="Nama frame / lensa / item...">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Tipe Produk <span class="text-danger">*</span></label>
+                                <select id="new_item_type" class="form-select form-select-sm">
+                                    <option value="">Pilih tipe...</option>
+                                    <option value="Frame">Frame</option>
+                                    <option value="Lensa">Lensa</option>
+                                </select>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Seri / Merek</label>
