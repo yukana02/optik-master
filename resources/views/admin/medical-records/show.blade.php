@@ -1,7 +1,7 @@
 {{-- resources/views/admin/medical-records/show.blade.php --}}
 @extends('layouts.admin')
-@section('title','Detail Rekam Medis')
-@section('page-title','Detail Rekam Medis')
+@section('title','History Rekam Medis')
+@section('page-title','History Rekam Medis')
 
 @section('content')
 <div class="row justify-content-center">
@@ -17,9 +17,9 @@
                 <span class="badge bg-primary">{{ $medicalRecord->tanggal_kunjungan->format('d M Y') }}</span>
             </div>
             <div class="d-flex gap-2">
-                @can('medical_record.edit')
-                <a href="{{ route('medical-records.edit',$medicalRecord) }}" class="btn btn-warning btn-sm">
-                    <i class="bi bi-pencil me-1"></i>Edit
+                @can('medical_record.create')
+                <a href="{{ route('medical-records.create',$medicalRecord) }}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus me-1"></i>Rekam Medis Baru
                 </a>
                 @endcan
                 <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">
@@ -29,16 +29,11 @@
         </div>
         <hr>
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-12">
                 <table class="table table-sm table-borderless mb-0">
                     <tr><td class="text-muted ps-0" style="width:120px">Dokter</td><td>: {{ $medicalRecord->nama_dokter ?? '-' }}</td></tr>
                     <tr><td class="text-muted ps-0">Keluhan</td><td>: {{ $medicalRecord->keluhan ?? '-' }}</td></tr>
-                    <tr><td class="text-muted ps-0">Jenis Lensa</td><td>: {{ $medicalRecord->jenis_lensa ?? '-' }}</td></tr>
-                </table>
-            </div>
-            <div class="col-md-6">
-                <table class="table table-sm table-borderless mb-0">
-                    <tr><td class="text-muted ps-0" style="width:140px">Rekomendasi Frame</td><td>: {{ $medicalRecord->rekomendasi_frame ?? '-' }}</td></tr>
+                    <tr><td class="text-muted ps-0">Diagnosis</td><td>: {{ $medicalRecord->diagnosis ?? '-' }}</td></tr>
                     <tr><td class="text-muted ps-0">PD Total</td><td>: {{ $medicalRecord->pd_total ?? '-' }}</td></tr>
                 </table>
             </div>
@@ -48,44 +43,101 @@
 
 {{-- Tabel Resep --}}
 <div class="card mb-3">
-    <div class="card-header p-3"><i class="bi bi-eyeglasses text-primary me-2"></i>Resep Kacamata</div>
+    <div class="card-header p-3">
+        <i class="bi bi-clock-history text-primary me-2"></i>Riwayat Refraksi
+    </div>
+
     <div class="card-body p-3">
-        <div class="table-responsive">
-            <table class="table table-bordered text-center align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th style="width:120px">Mata</th>
-                        <th>SPH</th><th>CYL</th><th>AXIS</th><th>ADD</th><th>PD</th><th>Visus</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><span class="badge bg-danger fs-6">OD (Kanan)</span></td>
-                        <td class="fw-bold">{{ $medicalRecord->formatResep($medicalRecord->od_sph) }}</td>
-                        <td class="fw-bold">{{ $medicalRecord->formatResep($medicalRecord->od_cyl) }}</td>
-                        <td>{{ $medicalRecord->od_axis ? $medicalRecord->od_axis.'°' : '-' }}</td>
-                        <td>{{ $medicalRecord->od_add ? '+'.number_format($medicalRecord->od_add,2) : '-' }}</td>
-                        <td>{{ $medicalRecord->od_pd ?? '-' }}</td>
-                        <td>{{ $medicalRecord->od_vis ?? '-' }}</td>
-                    </tr>
-                    <tr>
-                        <td><span class="badge bg-info fs-6">OS (Kiri)</span></td>
-                        <td class="fw-bold">{{ $medicalRecord->formatResep($medicalRecord->os_sph) }}</td>
-                        <td class="fw-bold">{{ $medicalRecord->formatResep($medicalRecord->os_cyl) }}</td>
-                        <td>{{ $medicalRecord->os_axis ? $medicalRecord->os_axis.'°' : '-' }}</td>
-                        <td>{{ $medicalRecord->os_add ? '+'.number_format($medicalRecord->os_add,2) : '-' }}</td>
-                        <td>{{ $medicalRecord->os_pd ?? '-' }}</td>
-                        <td>{{ $medicalRecord->os_vis ?? '-' }}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        @if($medicalRecord->catatan)
-        <div class="alert alert-light border mt-3 mb-0">
-            <strong><i class="bi bi-journal-text me-1"></i>Catatan Dokter:</strong>
-            <div class="mt-1">{{ $medicalRecord->catatan }}</div>
-        </div>
-        @endif
+        @forelse($histories as $history)
+            <div class="card mb-3 border">
+                
+                {{-- Header --}}
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="badge bg-primary bg-opacity-10 text-primary">
+                            {{ $history->tanggal_kunjungan->format('d M Y') }}
+                        </span>
+                        <span class="ms-2 text-muted">
+                            oleh <strong>{{ $history->createdBy->name ?? '-' }}</strong>
+                        </span>
+                    </div>
+
+                    <a href="{{ route('medical-records.detail', $history->id) }}" 
+                       class="btn btn-sm btn-outline-primary">
+                        Detail
+                    </a>
+                </div>
+                
+                {{-- Dokter --}}
+                <div class="card-body p-3">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-borderless mb-0">
+                            <tr><td class="text-muted ps-0" style="width:120px">Dokter</td><td>: {{ $history->nama_dokter ?? '-' }}</td></tr>
+                            <tr><td class="text-muted ps-0">Keluhan</td><td>: {{ $history->keluhan ?? '-' }}</td></tr>
+                            <tr><td class="text-muted ps-0">Jenis Lensa</td><td>: {{ $history->jenis_lensa ?? '-' }}</td></tr>
+                        </table>
+                    </div>
+                </div>
+
+                {{-- Body --}}
+                <div class="card-body p-3">
+                    <div class="table-responsive">
+                        <table class="table table-bordered text-center align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width:120px">Mata</th>
+                                    <th>SPH</th>
+                                    <th>CYL</th>
+                                    <th>AXIS</th>
+                                    <th>ADD</th>
+                                    <th>PD</th>
+                                    <th>Visus</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{-- OD --}}
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-danger">OD</span>
+                                    </td>
+                                    <td>{{ $history->formatResep($history->od_sph) }}</td>
+                                    <td>{{ $history->formatResep($history->od_cyl) }}</td>
+                                    <td>{{ $history->od_axis ? $history->od_axis.'°' : '-' }}</td>
+                                    <td>{{ $history->od_add ? '+'.number_format($history->od_add,2) : '-' }}</td>
+                                    <td>{{ $history->od_pd ?? '-' }}</td>
+                                    <td>{{ $history->od_vis ?? '-' }}</td>
+                                </tr>
+
+                                {{-- OS --}}
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-info">OS</span>
+                                    </td>
+                                    <td>{{ $history->formatResep($history->os_sph) }}</td>
+                                    <td>{{ $history->formatResep($history->os_cyl) }}</td>
+                                    <td>{{ $history->os_axis ? $history->os_axis.'°' : '-' }}</td>
+                                    <td>{{ $history->os_add ? '+'.number_format($history->os_add,2) : '-' }}</td>
+                                    <td>{{ $history->os_pd ?? '-' }}</td>
+                                    <td>{{ $history->os_vis ?? '-' }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {{-- Catatan --}}
+                    @if($history->catatan)
+                        <div class="alert alert-light border mt-3 mb-0">
+                            <strong>Catatan:</strong>
+                            <div class="mt-1">{{ $history->catatan }}</div>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        @empty
+            <div class="text-center text-muted py-3">
+                Tidak ada riwayat sebelumnya
+            </div>
+        @endforelse
     </div>
 </div>
 

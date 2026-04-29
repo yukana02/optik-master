@@ -32,6 +32,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['permission:medical_record.view'])->group(
         function () {
             Route::resource('medical-records', MedicalRecordController::class);
+            Route::get('medical-records/{medical_record}/detail', [MedicalRecordController::class, 'detail'])->name('medical-records.detail');
         }
     );
 

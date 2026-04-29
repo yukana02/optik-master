@@ -62,7 +62,7 @@ class PatientController extends Controller
     public function show(Patient $patient)
     {
         $patient->load([
-            'medicalRecords.dokter',
+            'medicalRecords.createdBy',
             'transactions.items.product',
             'transactions.kasir',
         ]);

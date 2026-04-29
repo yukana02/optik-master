@@ -47,7 +47,11 @@
                         </span>
                     </td>
                     <td><span class="badge bg-secondary">{{ $rm->patient->no_rm }}</span></td>
-                    <td class="fw-semibold">{{ $rm->patient->nama }}</td>
+                    <td class="fw-semibold">
+                        <a href="{{ route('medical-records.show', $rm) }}" class="text-secondary-emphasis text-decoration-none">
+                            {{ $rm->patient->nama }}
+                        </a>
+                    </td>
                     <td style="font-size:.82rem">
                         <span class="text-muted">SPH</span> {{ $rm->formatResep($rm->od_sph) }}
                         <span class="text-muted ms-1">CYL</span> {{ $rm->formatResep($rm->od_cyl) }}

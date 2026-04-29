@@ -89,20 +89,33 @@
                 <input type="number" name="pd_total" class="form-control" step="0.5"
                        value="{{ old('pd_total',$medicalRecord->pd_total) }}">
             </div>
+            
+            {{-- diagnosis --}}
+            @php
+            $diagnoses = [
+                'Myopia Astigmatism',
+                'Myopia + Presbyopia',
+                'Myopia Astigmatism + Presbyopia',
+                'Hypermetropia + Astigmatism',
+                'Hypermetropia + Presbyopia',
+                'Hypermetropia Astigmatism + Presbyopia',
+                'Astigmatism + Presbyopia',
+            ];
+            @endphp
+
             <div class="col-md-4">
-                <label class="form-label fw-semibold">Jenis Lensa</label>
-                <select name="jenis_lensa" class="form-select">
+                <label class="form-label fw-semibold">Diagnosis</label>
+                <select name="diagnosis" class="form-select">
                     <option value="">-- Pilih --</option>
-                    @foreach(['Single Vision','Bifocal','Progresif','Photochromic','Blue Cut'] as $jl)
-                    <option value="{{ $jl }}" {{ old('jenis_lensa',$medicalRecord->jenis_lensa)==$jl?'selected':'' }}>{{ $jl }}</option>
+                    @foreach($diagnoses as $d)
+                        <option value="{{ $d }}" 
+                            {{ old('diagnosis', $medicalRecord->diagnosis) == $d ? 'selected' : '' }}>
+                            {{ $d }}
+                        </option>
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-5">
-                <label class="form-label fw-semibold">Rekomendasi Frame</label>
-                <input type="text" name="rekomendasi_frame" class="form-control"
-                       value="{{ old('rekomendasi_frame',$medicalRecord->rekomendasi_frame) }}">
-            </div>
+            
             <div class="col-12">
                 <label class="form-label fw-semibold">Catatan Dokter</label>
                 <textarea name="catatan" class="form-control" rows="3">{{ old('catatan',$medicalRecord->catatan) }}</textarea>

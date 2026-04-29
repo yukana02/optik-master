@@ -11,23 +11,32 @@ class MedicalRecordController extends Controller
 {
     public function index(Request $request)
     {
-        $query = MedicalRecord::with(['patient', 'createdBy']);
+        // Ambil ID record terbaru per patient
+        $latestIds = MedicalRecord::selectRaw('MAX(id) as id')
+            ->groupBy('patient_id');
 
+        $query = MedicalRecord::with(['patient', 'createdBy'])
+            ->whereIn('id', $latestIds);
+
+        // Search (nama / no_rm)
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->whereHas('patient', fn($q) =>
+            $query->whereHas('patient', function ($q) use ($search) {
                 $q->where('nama', 'like', "%{$search}%")
-                  ->orWhere('no_rm', 'like', "%{$search}%")
-            );
+                ->orWhere('no_rm', 'like', "%{$search}%");
+            });
         }
 
+        // Filter tanggal
         if ($request->filled('from')) {
             $query->whereDate('tanggal_kunjungan', '>=', $request->from);
         }
+
         if ($request->filled('to')) {
             $query->whereDate('tanggal_kunjungan', '<=', $request->to);
         }
 
+        // Pagination
         $records = $query->latest()->paginate(15)->withQueryString();
 
         return view('admin.medical-records.index', compact('records'));
@@ -44,25 +53,27 @@ class MedicalRecordController extends Controller
 
     public function store(Request $request)
     {
+        // dd($request->all());
         $validated = $request->validate([
             'patient_id'        => 'required|exists:patients,id',
             'nama_dokter'       => 'required|string|max:255',
             'tanggal_kunjungan' => 'required|date',
             'keluhan'           => 'nullable|string|max:255',
+            'diagnosis'         => 'nullable|string|max:255',
             // OD
             'od_sph'  => 'nullable|numeric|between:-30,30',
             'od_cyl'  => 'nullable|numeric|between:-10,10',
             'od_axis' => 'nullable|integer|between:0,180',
             'od_add'  => 'nullable|numeric|between:0,5',
             'od_pd'   => 'nullable|numeric|between:20,40',
-            'od_vis'  => 'nullable|numeric|between:0,2',
+            'od_vis'  => 'nullable|string|max:10',
             // OS
             'os_sph'  => 'nullable|numeric|between:-30,30',
             'os_cyl'  => 'nullable|numeric|between:-10,10',
             'os_axis' => 'nullable|integer|between:0,180',
             'os_add'  => 'nullable|numeric|between:0,5',
             'os_pd'   => 'nullable|numeric|between:20,40',
-            'os_vis'  => 'nullable|numeric|between:0,2',
+            'os_vis'  => 'nullable|string|max:10',
             // Info lain
             'pd_total'          => 'nullable|numeric|between:40,80',
             'jenis_lensa'       => 'nullable|string|max:100',
@@ -81,7 +92,21 @@ class MedicalRecordController extends Controller
     public function show(MedicalRecord $medicalRecord)
     {
         $medicalRecord->load(['patient', 'createdBy', 'transaction.items.product']);
-        return view('admin.medical-records.show', compact('medicalRecord'));
+
+        // Ambil riwayat sebelumnya
+        $histories = MedicalRecord::with('createdBy')
+            ->where('patient_id', $medicalRecord->patient_id)
+            ->latest('tanggal_kunjungan')
+            ->get();
+
+        return view('admin.medical-records.show', compact('medicalRecord', 'histories'));
+    }
+
+    public function detail(MedicalRecord $medicalRecord)
+    {
+        $medicalRecord->load(['patient', 'createdBy', 'transaction.items.product']);
+
+        return view('admin.medical-records.detail', compact('medicalRecord'));
     }
 
     public function edit(MedicalRecord $medicalRecord)
@@ -98,6 +123,7 @@ class MedicalRecordController extends Controller
             'nama_dokter'       => 'required|string|max:255',
             'tanggal_kunjungan' => 'required|date',
             'keluhan'           => 'nullable|string|max:255',
+            'diagnosis'         => 'nullable|string|max:255',
             'od_sph' => 'nullable|numeric|between:-30,30',
             'od_cyl' => 'nullable|numeric|between:-10,10',
             'od_axis'=> 'nullable|integer|between:0,180',

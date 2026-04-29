@@ -14,17 +14,30 @@
                     <div class="card-body p-4">
                         <div class="row g-3">
                             <div class="col-md-5">
-                                <label class="form-label fw-semibold">Pasien <span class="text-danger">*</span></label>
-                                <select name="patient_id" class="form-select @error('patient_id') is-invalid @enderror"
+                                <label class="form-label fw-semibold">
+                                    Pasien <span class="text-danger">*</span>
+                                </label>
+
+                                {{-- Hidden ID --}}
+                                <input type="hidden" name="patient_id" id="patient_id"
+                                    value="{{ old('patient_id', $selectedPatient?->id) }}">
+
+                                {{-- Input tampil --}}
+                                <input type="text"
+                                    id="patient_search"
+                                    class="form-control @error('patient_id') is-invalid @enderror"
+                                    placeholder="Cari No RM / Nama pasien..."
+                                    value="{{ old('patient_id') ? $selectedPatient?->no_rm.' — '.$selectedPatient?->nama : '' }}"
+                                    autocomplete="off"
                                     required>
-                                    <option value="">-- Pilih Pasien --</option>
-                                    @foreach($patients as $p)
-                                        <option value="{{ $p->id }}" {{ old('patient_id', $selectedPatient?->id) == $p->id ? 'selected' : '' }}>
-                                            {{ $p->no_rm }} — {{ $p->nama }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('patient_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+
+                                {{-- Dropdown hasil --}}
+                                <div id="patient_result" class="list-group position-absolute w-100 shadow"
+                                    style="z-index:1000;"></div>
+
+                                @error('patient_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label fw-semibold">
@@ -77,6 +90,7 @@
                                         <th>AXIS</th>
                                         <th>ADD</th>
                                         <th>MPD</th>
+                                        <th>Visus</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -95,8 +109,8 @@
                                                 min="0" max="5" value="{{ old('od_add') }}" placeholder="0.00"></td>
                                         <td><input type="number" name="od_pd" class="form-control text-center" step="0.5"
                                                 min="20" max="40" value="{{ old('od_pd') }}" placeholder="0.0"></td>
-                                        <td><input type="number" name="od_vis" class="form-control text-center" step="0.1"
-                                                min="0" max="2" value="{{ old('od_vis') }}" placeholder="1.0"></td>
+                                        <td><input type="text" name="od_vis" class="form-control text-center" step="0.1"
+                                                min="0" max="2" value="{{ old('od_vis') }}" placeholder="6/6"></td>
                                     </tr>
                                     <tr>
                                         <td class="text-center">
@@ -113,6 +127,8 @@
                                                 min="0" max="5" value="{{ old('os_add') }}" placeholder="0.00"></td>
                                         <td><input type="number" name="os_pd" class="form-control text-center" step="0.5"
                                                 min="20" max="40" value="{{ old('os_pd') }}" placeholder="0.0"></td>
+                                        <td><input type="text" name="os_vis" class="form-control text-center" step="0.1"
+                                                min="0" max="2" value="{{ old('os_vis') }}" placeholder="6/6"></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -120,30 +136,33 @@
                         <div class="row g-3 mt-1">
                             <div class="col-md-3">
                                 <label class="form-label fw-semibold">PD Total / Binokular</label>
-                                <input type="number" name="pd_total" class="form-control" step="0.5" min="40" max="80"
-                                    value="{{ old('pd_total') }}" placeholder="60.0">
+                                <input type="number" name="pd_total" class="form-control" min="40" max="80"
+                                    value="{{ old('pd_total') }}" placeholder="60">
                             </div>
+
+                            {{-- diagnosis --}}
                             <div class="col-md-4">
-                                <label class="form-label fw-semibold">Jenis Lensa</label>
-                                <select name="jenis_lensa" class="form-select">
+                                <label class="form-label fw-semibold">Diagnosis</label>
+                                <select name="diagnosis" class="form-select">
                                     <option value="">-- Pilih --</option>
-                                    <option value="Single Vision" {{ old('jenis_lensa') == 'Single Vision' ? 'selected' : '' }}>
-                                        Single Vision</option>
-                                    <option value="Bifocal" {{ old('jenis_lensa') == 'Bifocal' ? 'selected' : '' }}>Bifocal
+                                    <option value="Myopia Astigmatism" {{ old('diagnosis') == 'Myopia Astigmatism' ? 'selected' : '' }}>
+                                        Myopia Astigmatism</option>
+                                    <option value="Myopia + Presbyopia" {{ old('diagnosis') == 'Myopia + Presbyopia' ? 'selected' : '' }}>Myopia + Presbyopia
                                     </option>
-                                    <option value="Progresif" {{ old('jenis_lensa') == 'Progresif' ? 'selected' : '' }}>
-                                        Progresif</option>
-                                    <option value="Photochromic" {{ old('jenis_lensa') == 'Photochromic' ? 'selected' : '' }}>
-                                        Photochromic</option>
-                                    <option value="Blue Cut" {{ old('jenis_lensa') == 'Blue Cut' ? 'selected' : '' }}>Blue Cut
-                                    </option>
+                                    <option value="Myopia Astigmatism + Presbyopia" {{ old('diagnosis') == 'Myopia Astigmatism + Presbyopia' ? 'selected' : '' }}>
+                                        Myopia Astigmatism + Presbyopia</option>
+                                    <option value="Hypermetropia + Astigmatism" {{ old('diagnosis') == 'Hypermetropia + Astigmatism' ? 'selected' : '' }}>
+                                        Hypermetropia + Astigmatism</option>
+                                    <option value="Hypermetropia + Presbyopia" {{ old('diagnosis') == 'Hypermetropia + Presbyopia' ? 'selected' : '' }}>
+                                        Hypermetropia + Presbyopia</option>
+                                    <option value="Hypermetropia Astigmatism + Presbyopia" {{ old('diagnosis') == 'Hypermetropia Astigmatism + Presbyopia' ? 'selected' : '' }}>
+                                        Hypermetropia Astigmatism + Presbyopia</option>
+                                    <option value="Astigmatism + Presbyopia" {{ old('diagnosis') == 'Astigmatism + Presbyopia' ? 'selected' : '' }}>
+                                        Astigmatism + Presbyopia</option>
                                 </select>
                             </div>
-                            <div class="col-md-5">
-                                <label class="form-label fw-semibold">Rekomendasi Frame</label>
-                                <input type="text" name="rekomendasi_frame" class="form-control"
-                                    value="{{ old('rekomendasi_frame') }}" placeholder="Full rim, semi rim, rimless...">
-                            </div>
+
+                            {{-- catatan --}}
                             <div class="col-12">
                                 <label class="form-label fw-semibold">Catatan Dokter</label>
                                 <textarea name="catatan" class="form-control" rows="3"
@@ -164,3 +183,55 @@
         </div>
     </div>
 @endsection
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const input = document.getElementById('patient_search');
+    const resultBox = document.getElementById('patient_result');
+    const hidden = document.getElementById('patient_id');
+
+    let timeout = null;
+
+    input.addEventListener('keyup', function () {
+        const query = this.value;
+
+        clearTimeout(timeout);
+
+        if (query.length < 2) {
+            resultBox.innerHTML = '';
+            return;
+        }
+
+        timeout = setTimeout(() => {
+            fetch(`{{ route('patients.autocomplete') }}?q=${query}`)
+                .then(res => res.json())
+                .then(data => {
+                    resultBox.innerHTML = '';
+
+                    data.forEach(item => {
+                        const el = document.createElement('a');
+                        el.href = "#";
+                        el.classList.add('list-group-item', 'list-group-item-action');
+                        el.textContent = `${item.no_rm} — ${item.nama}`;
+
+                        el.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            input.value = `${item.no_rm} — ${item.nama}`;
+                            hidden.value = item.id;
+                            resultBox.innerHTML = '';
+                        });
+
+                        resultBox.appendChild(el);
+                    });
+                });
+        }, 300);
+    });
+
+    // klik luar -> close dropdown
+    document.addEventListener('click', function (e) {
+        if (!input.contains(e.target)) {
+            resultBox.innerHTML = '';
+        }
+    });
+});
+</script>
