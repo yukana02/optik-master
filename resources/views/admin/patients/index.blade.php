@@ -59,7 +59,7 @@
                     <td>{{ $p->no_bpjs ?? '-' }}</td>
                     <td>
                         @if($p->latestRecord)
-                            {{ $p->latestRecord->tanggal_kunjungan->format('d M Y') }}
+                            {{ $p->latestRecord->visit_date->format('d M Y') }}
                         @else
                             <span class="text-muted">Belum ada</span>
                         @endif

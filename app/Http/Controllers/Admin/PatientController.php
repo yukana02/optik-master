@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Patient;
 use App\Exports\PatientExport;
 use App\Imports\PatientImport;
+use App\Models\MedicalRecord;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -45,6 +46,7 @@ class PatientController extends Controller
             'jenis_kelamin'    => 'nullable|in:L,P',
             'no_hp'            => 'nullable|string|max:20',
             'no_bpjs'          => 'nullable|string',
+            'tipe_bpjs'        => 'nullable|in:1,2,3',
             'nik'              => 'nullable|string',
             'email'            => 'nullable|email|max:100',
             'alamat'           => 'nullable|string',
@@ -62,7 +64,9 @@ class PatientController extends Controller
     public function show(Patient $patient)
     {
         $patient->load([
-            'medicalRecords.createdBy',
+            'latestRecord.oldGlasses',
+            'latestRecord.refraction',
+            'latestRecord.prescription',
             'transactions.items.product',
             'transactions.kasir',
         ]);
@@ -83,6 +87,7 @@ class PatientController extends Controller
             'jenis_kelamin'    => 'nullable|in:L,P',
             'no_hp'            => 'nullable|string|max:20',
             'no_bpjs'          => 'nullable|string',
+            'tipe_bpjs'        => 'nullable|in:1,2,3',
             'nik'              => 'nullable|string',
             'email'            => 'nullable|email|max:100',
             'alamat'           => 'nullable|string',
@@ -209,43 +214,60 @@ class PatientController extends Controller
     
     public function latestRefraction(Patient $patient)
     {
-        $patient->load(['medicalRecords' => function ($query) {
-            $query->latest('tanggal_kunjungan')->take(5);
-        }]);
+        $patient->load([
+            'medicalRecords' => function ($query) {
+                $query->latest('visit_date')->take(5);
+            },
+            'medicalRecords.refraction',
+        ]);
 
         $latest = $patient->medicalRecords->first();
+        $latestRefraction = $latest?->refraction;
 
         $history = $patient->medicalRecords->map(function ($rm) {
+            $refraction = $rm->refraction;
             return [
                 'id' => $rm->id,
-                'tanggal_kunjungan' => $rm->tanggal_kunjungan->format('d M Y'),
-                'dokter' => $rm->nama_dokter ?? '-',
-                'keluhan' => $rm->keluhan,
-                'od_sph' => $rm->od_sph,
-                'od_cyl' => $rm->od_cyl,
-                'od_axis' => $rm->od_axis,
-                'od_add' => $rm->od_add,
-                'od_pd' => $rm->od_pd,
-                'os_sph' => $rm->os_sph,
-                'os_cyl' => $rm->os_cyl,
-                'os_axis' => $rm->os_axis,
-                'os_add' => $rm->os_add,
-                'os_pd' => $rm->os_pd,
+                'tanggal_kunjungan' => $rm->visit_date->format('d M Y'),
+                'dokter' => $refraction?->doctor_name ?? '-',
+                'keluhan' => $rm->complaint,
+                'od_sc' => $refraction?->od_sc,
+                'od_sph' => $refraction?->od_sph,
+                'od_cyl' => $refraction?->od_cyl,
+                'od_axis' => $refraction?->od_axis,
+                'od_prism' => $refraction?->od_prism,
+                'od_add' => $refraction?->od_add,
+                'od_pd' => $refraction?->od_pd,
+                'od_cc' => $refraction?->od_cc,
+                'os_sc' => $refraction?->os_sc,
+                'os_sph' => $refraction?->os_sph,
+                'os_cyl' => $refraction?->os_cyl,
+                'os_axis' => $refraction?->os_axis,
+                'os_prism' => $refraction?->os_prism,
+                'os_add' => $refraction?->os_add,
+                'os_pd' => $refraction?->os_pd,
+                'os_cc' => $refraction?->os_cc,
             ];
         });
 
         return response()->json([
             // Backward compatibility: refraksi terakhir
-            'od_sph' => $latest?->od_sph,
-            'od_cyl' => $latest?->od_cyl,
-            'od_axis' => $latest?->od_axis,
-            'od_add' => $latest?->od_add,
-            'od_mpd' => $latest?->od_pd, // Asumsi mpd = pd
-            'os_sph' => $latest?->os_sph,
-            'os_cyl' => $latest?->os_cyl,
-            'os_axis' => $latest?->os_axis,
-            'os_add' => $latest?->os_add,
-            'os_mpd' => $latest?->os_pd,
+            'od_sc' => $latestRefraction?->od_sc,
+            'od_sph' => $latestRefraction?->od_sph,
+            'od_cyl' => $latestRefraction?->od_cyl,
+            'od_axis' => $latestRefraction?->od_axis,
+            'od_prism' => $latestRefraction?->od_prism,
+            'od_add' => $latestRefraction?->od_add,
+            'od_mpd' => $latestRefraction?->od_pd,
+            'od_cc' => $latestRefraction?->od_cc,
+            'os_sc' => $latestRefraction?->os_sc,
+            'os_sph' => $latestRefraction?->os_sph,
+            'os_cyl' => $latestRefraction?->os_cyl,
+            'os_axis' => $latestRefraction?->os_axis,
+            'os_prism' => $latestRefraction?->os_prism,
+            'os_add' => $latestRefraction?->os_add,
+            'os_mpd' => $latestRefraction?->os_pd,
+            'os_cc' => $latestRefraction?->os_cc,
             // Histori lengkap
             'history' => $history,
         ]);

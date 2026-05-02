@@ -40,13 +40,22 @@
                             <input type="text" name="nik" class="form-control" value="{{ old('nik') }}" placeholder="NIK (opsional)">
                         </div>
                         <div class="col-md-6">
+                            <label class="form-label fw-semibold">No. HP</label>
+                            <input type="text" name="no_hp" class="form-control" value="{{ old('no_hp') }}" placeholder="08xx-xxxx-xxxx">
+                        </div>    
+                        <div class="col-md-6">
                             <label class="form-label fw-semibold">No. BPJS</label>
                             <input type="text" name="no_bpjs" class="form-control" value="{{ old('no_bpjs') }}" placeholder="Nomor BPJS (opsional)">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">No. HP</label>
-                            <input type="text" name="no_hp" class="form-control" value="{{ old('no_hp') }}" placeholder="08xx-xxxx-xxxx">
-                        </div>                        
+                            <label class="form-label fw-semibold">Tipe BPJS</label>
+                            <select name="tipe_bpjs" class="form-select">
+                                <option value="">-- Pilih --</option>
+                                <option value="1" {{ old('tipe_bpjs') == '1' ? 'selected' : '' }}>Kelas 1</option>
+                                <option value="2" {{ old('tipe_bpjs') == '2' ? 'selected' : '' }}>Kelas 2</option>
+                                <option value="3" {{ old('tipe_bpjs') == '3' ? 'selected' : '' }}>Kelas 3</option>
+                            </select>
+                        </div>                    
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Email</label>
                             <input type="email" name="email" class="form-control" value="{{ old('email') }}">
