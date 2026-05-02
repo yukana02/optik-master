@@ -178,5 +178,8 @@ class DatabaseSeeder extends Seeder
         ]);
 
         Patient::factory()->count(100)->create();
+
+        // Diagnosis seeder
+        $this->call(DiagnosisSeeder::class);
     }
 }

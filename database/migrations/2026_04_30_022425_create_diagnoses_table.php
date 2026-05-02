@@ -11,8 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('medical_records', function (Blueprint $table) {
-            $table->string('diagnosis')->nullable()->after('keluhan');
+        Schema::create('diagnoses', function (Blueprint $table) {
+            $table->id();
+            $table->string('code')->unique();
+            $table->string('name');
+            $table->text('description')->nullable();
+            $table->timestamps();
         });
     }
 
@@ -21,8 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('medical_records', function (Blueprint $table) {
-            $table->dropColumn('diagnosis');
-        });
+        Schema::dropIfExists('diagnoses');
     }
 };

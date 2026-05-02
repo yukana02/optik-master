@@ -46,6 +46,15 @@
                             <label class="form-label">No BPJS</label>
                             <input type="text" name="no_bpjs" id="no_bpjs" class="form-control form-control-sm" placeholder="000...">
                         </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Potongan BPJS</label>
+                            <select name="potongan_bpjs" id="potongan_bpjs" class="form-select">
+                                <option value="0">-- Pilih --</option>
+                                <option value="330.000">Kelas 1 - Rp 330.000</option>
+                                <option value="220.000">Kelas 2 - Rp 220.000</option>
+                                <option value="165.000">Kelas 3 - Rp 165.000</option>
+                            </select>
+                        </div>
                         <div class="col-12">
                             <input type="hidden" name="nama" id="nama_pasien" class="form-control form-control-sm" placeholder="Nama pasien (kosong = UMUM)">
                         </div>
@@ -127,7 +136,7 @@
                                     <th>Axis</th>
                                     <th>Add</th>
                                     <th>MPD</th>
-                                    <th>Prism</th>
+                                    <th>Visus</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -138,7 +147,7 @@
                                     <td><input type="text" name="od_axis" id="od_axis" placeholder="0"    inputmode="numeric"></td>
                                     <td><input type="text" name="od_add"  id="od_add"  placeholder="0.00" inputmode="decimal"></td>
                                     <td><input type="text" name="od_mpd"  id="od_mpd"  placeholder="0.0"  inputmode="decimal"></td>
-                                    <td><input type="text" name="od_prism" id="od_prism" placeholder="-"    inputmode="decimal"></td>
+                                    <td><input type="text" name="od_vis"  id="od_vis"  placeholder="6/6" inputmode="text"></td>
                                 </tr>
                                 <tr>
                                     <td class="text-danger fw-bold">OS</td>
@@ -147,7 +156,7 @@
                                     <td><input type="text" name="os_axis" id="os_axis" placeholder="0"    inputmode="numeric"></td>
                                     <td><input type="text" name="os_add"  id="os_add"  placeholder="0.00" inputmode="decimal"></td>
                                     <td><input type="text" name="os_mpd"  id="os_mpd"  placeholder="0.0"  inputmode="decimal"></td>
-                                    <td><input type="text" name="os_prism" id="os_prism" placeholder="-"    inputmode="decimal"></td>
+                                    <td><input type="text" name="os_vis"  id="os_vis"  placeholder="6/6" inputmode="text"></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -155,13 +164,41 @@
 
                     <div class="mt-3 pt-3 border-top">
                         <div class="row g-2">
+                            {{-- diagnosis --}}
                             <div class="col-md-6">
-                                <label class="form-label">Lensa (keterangan)</label>
-                                <input type="text" name="lensa" id="lensa_ket" class="form-control form-control-sm" placeholder="Jenis lensa...">
+                                <label class="form-label fw-semibold">Diagnosis</label>
+                                <select name="diagnosis" class="form-select">
+                                    <option value="">-- Pilih --</option>
+                                    <option value="Myopia Astigmatism" {{ old('diagnosis') == 'Myopia Astigmatism' ? 'selected' : '' }}>
+                                        Myopia Astigmatism</option>
+                                    <option value="Myopia + Presbyopia" {{ old('diagnosis') == 'Myopia + Presbyopia' ? 'selected' : '' }}>Myopia + Presbyopia
+                                    </option>
+                                    <option value="Myopia Astigmatism + Presbyopia" {{ old('diagnosis') == 'Myopia Astigmatism + Presbyopia' ? 'selected' : '' }}>
+                                        Myopia Astigmatism + Presbyopia</option>
+                                    <option value="Hypermetropia + Astigmatism" {{ old('diagnosis') == 'Hypermetropia + Astigmatism' ? 'selected' : '' }}>
+                                        Hypermetropia + Astigmatism</option>
+                                    <option value="Hypermetropia + Presbyopia" {{ old('diagnosis') == 'Hypermetropia + Presbyopia' ? 'selected' : '' }}>
+                                        Hypermetropia + Presbyopia</option>
+                                    <option value="Hypermetropia Astigmatism + Presbyopia" {{ old('diagnosis') == 'Hypermetropia Astigmatism + Presbyopia' ? 'selected' : '' }}>
+                                        Hypermetropia Astigmatism + Presbyopia</option>
+                                    <option value="Astigmatism + Presbyopia" {{ old('diagnosis') == 'Astigmatism + Presbyopia' ? 'selected' : '' }}>
+                                        Astigmatism + Presbyopia</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">PD Total / Binokular</label>
+                                <input type="number" name="pd_total" class="form-control" min="40" max="80"
+                                    value="{{ old('pd_total') }}" placeholder="60">
+                            </div>
+
+                            <div class="col-md-6">
+                                {{-- <label class="form-label">Lensa (keterangan)</label> --}}
+                                <input type="hidden" name="lensa" id="lensa_ket" class="form-control form-control-sm" placeholder="Jenis lensa...">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Keterangan Ukuran</label>
-                                <input type="text" name="keterangan_frame" class="form-control form-control-sm" placeholder="Catatan ukuran...">
+                                {{-- <label class="form-label">Keterangan Ukuran</label> --}}
+                                <input type="hidden" name="keterangan_frame" class="form-control form-control-sm" placeholder="Catatan ukuran...">
                             </div>
                         </div>
                     </div>

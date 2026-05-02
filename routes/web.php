@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\TransactionController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\DiagnosisController;
 use App\Http\Controllers\PickupController;
 
 Route::get('/', fn() => redirect()->route('dashboard'));
@@ -33,6 +34,14 @@ Route::middleware(['auth'])->group(function () {
         function () {
             Route::resource('medical-records', MedicalRecordController::class);
             Route::get('medical-records/{medical_record}/detail', [MedicalRecordController::class, 'detail'])->name('medical-records.detail');
+        }
+    );
+    
+    // diagnosis routes
+    Route::middleware(['permission:medical_record.view'])->group(
+        function () {
+            Route::resource('diagnoses', DiagnosisController::class);
+            Route::get('diagnoses/search/json', [DiagnosisController::class, 'search'])->name('diagnoses.search');
         }
     );
 

@@ -43,7 +43,7 @@
                     <td class="ps-3 text-muted">{{ $records->firstItem() + $i }}</td>
                     <td>
                         <span class="badge bg-primary bg-opacity-10 text-primary">
-                            {{ $rm->tanggal_kunjungan->format('d M Y') }}
+                            {{ $rm->visit_date->format('d M Y') }}
                         </span>
                     </td>
                     <td><span class="badge bg-secondary">{{ $rm->patient->no_rm }}</span></td>
@@ -81,6 +81,7 @@
                         </div>
                     </td>
                 </tr>
+                
                 @empty
                 <tr>
                     <td colspan="8" class="text-center text-muted py-5">

@@ -11,14 +11,14 @@ class MedicalRecord extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'patient_id', 'user_id', 'nama_dokter', 'tanggal_kunjungan', 'keluhan', 'diagnosis',
-        'od_sph', 'od_cyl', 'od_axis', 'od_add', 'od_pd', 'od_vis', 'od_prism',
-        'os_sph', 'os_cyl', 'os_axis', 'os_add', 'os_pd', 'os_vis', 'os_prism',
-        'pd_total', 'jenis_lensa', 'rekomendasi_frame', 'catatan',
+        'patient_id',
+        'user_id',
+        'visit_date',
+        'complaint',
     ];
 
     protected $casts = [
-        'tanggal_kunjungan' => 'date',
+        'visit_date' => 'date',
     ];
 
     // Format nilai resep dengan tanda + atau -
@@ -42,5 +42,20 @@ class MedicalRecord extends Model
     public function transaction()
     {
         return $this->hasOne(Transaction::class);
+    }
+
+    public function refraction()
+    {
+        return $this->hasOne(Refraction::class);
+    }
+
+    public function prescription()
+    {
+        return $this->hasOne(Prescription::class);
+    }
+
+    public function oldGlasses()
+    {
+        return $this->hasOne(OldGlasses::class);
     }
 }

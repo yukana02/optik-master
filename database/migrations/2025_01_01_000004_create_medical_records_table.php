@@ -12,33 +12,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('patient_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->date('tanggal_kunjungan');
-            $table->string('keluhan')->nullable();
+           
+            $table->date('visit_date');
+            $table->string('complaint')->nullable();
 
-            // Mata Kanan (OD = Oculus Dexter)
-            $table->decimal('od_sph', 5, 2)->nullable()->comment('Spheris kanan');
-            $table->decimal('od_cyl', 5, 2)->nullable()->comment('Silinder kanan');
-            $table->smallInteger('od_axis')->nullable()->comment('Axis kanan 0-180');
-            $table->decimal('od_add', 5, 2)->nullable()->comment('Addisi kanan');
-            $table->decimal('od_pd', 5, 2)->nullable()->comment('Pupil Distance kanan');
-            $table->decimal('od_vis', 5, 2)->nullable()->comment('Visus kanan');
-            $table->string('od_prism', 20)->nullable()->comment('Prism kanan');
-
-            // Mata Kiri (OS = Oculus Sinister)
-            $table->decimal('os_sph', 5, 2)->nullable()->comment('Spheris kiri');
-            $table->decimal('os_cyl', 5, 2)->nullable()->comment('Silinder kiri');
-            $table->smallInteger('os_axis')->nullable()->comment('Axis kiri 0-180');
-            $table->decimal('os_add', 5, 2)->nullable()->comment('Addisi kiri');
-            $table->decimal('os_pd', 5, 2)->nullable()->comment('Pupil Distance kiri');
-            $table->decimal('os_vis', 5, 2)->nullable()->comment('Visus kiri');
-            $table->string('os_prism', 20)->nullable()->comment('Prism kiri');
-
-            // PD total
-            $table->decimal('pd_total', 5, 2)->nullable()->comment('PD Binokular');
-
-            $table->string('jenis_lensa')->nullable();
-            $table->string('rekomendasi_frame')->nullable();
-            $table->text('catatan')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });
