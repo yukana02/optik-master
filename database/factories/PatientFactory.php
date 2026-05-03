@@ -17,11 +17,14 @@ class PatientFactory extends Factory
      */
     public function definition(): array
     {
+        $hasBpjs = $this->faker->boolean(60);
+
         return [
             'no_rm' => 'RM-' . $this->faker->unique()->numerify('#####'),
             'nama' => $this->faker->name(),
             'nik' => $this->faker->unique()->numerify('################'),
-            'no_bpjs' => $this->faker->boolean(60) ? $this->faker->unique()->numerify('################') : null,
+            'no_bpjs' => $hasBpjs ? $this->faker->unique()->numerify('################') : null,
+            'tipe_bpjs' => $hasBpjs ? $this->faker->randomElement([1, 2, 3]) : null,
             'tanggal_lahir' => $this->faker->date(),
             'jenis_kelamin' => $this->faker->randomElement(['L', 'P']),
             'no_hp' => $this->faker->phoneNumber(),

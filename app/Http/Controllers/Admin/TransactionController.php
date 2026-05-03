@@ -223,15 +223,16 @@ class TransactionController extends Controller
         }
 
         $records = MedicalRecord::where('patient_id', $request->patient_id)
-            ->latest()
+            ->with('refraction')
+            ->latest('visit_date')
             ->take(10)
-            ->get(['id', 'tanggal_kunjungan', 'od_sph', 'os_sph'])
+            ->get()
             ->map(function ($r) {
                 return [
                     'id' => $r->id,
-                    'tanggal_kunjungan' => $r->tanggal_kunjungan->format('d M Y'),
-                    'od_sph' => $r->od_sph ?? '-',
-                    'os_sph' => $r->os_sph ?? '-',
+                    'tanggal_kunjungan' => $r->visit_date->format('d M Y'),
+                    'od_sph' => $r->refraction?->od_sph ?? '-',
+                    'os_sph' => $r->refraction?->os_sph ?? '-',
                 ];
             });
 

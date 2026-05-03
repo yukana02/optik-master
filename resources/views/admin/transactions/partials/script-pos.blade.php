@@ -156,7 +156,7 @@ function validateStep(step) {
         }
         document.getElementById('nama_dokter').classList.remove('is-invalid');
 
-        const refractionFields = ['od_sph', 'od_cyl', 'od_axis', 'od_add', 'od_mpd', 'os_sph', 'os_cyl', 'os_axis', 'os_add', 'os_mpd'];
+        const refractionFields = ['od_sph', 'od_cyl', 'od_axis', 'od_prism',     'od_add', 'od_mpd', 'od_cc', 'os_sph', 'os_cyl', 'os_axis', 'os_prism', 'os_add', 'os_mpd', 'os_cc'];
         const hasAnyRefraction = refractionFields.some(fieldId => document.getElementById(fieldId).value.trim() !== '');
 
         if (!hasAnyRefraction) {
@@ -369,6 +369,7 @@ setupAC(
         document.getElementById('patient_id').value  = p.id;
         document.getElementById('nik').value      = p.nik || '';
         document.getElementById('no_bpjs').value      = p.no_bpjs || '';
+        document.getElementById('tipe_bpjs').value      = p.tipe_bpjs || '';
         document.getElementById('nama_pasien').value  = p.nama    || '';
         document.querySelector('input[name="telp"]').value    = p.no_hp   || '';
         document.querySelector('textarea[name="alamat"]').value = p.alamat || '';
@@ -377,6 +378,7 @@ setupAC(
         document.getElementById('patient-selected-badge').classList.remove('d-none');
         document.getElementById('btn-load-history').style.display = '';
         document.getElementById('no_bpjs_container').style.display = p.no_bpjs ? '' : 'none';
+        document.getElementById('tipe_bpjs_container').style.display = p.tipe_bpjs ? '' : 'none';
         
         // AUTO LOAD HISTORY
         loadPatientHistory();
@@ -388,12 +390,14 @@ function clearPatient() {
     document.getElementById('ac_pasien').value    = '';
     document.getElementById('nik').value      = '';
     document.getElementById('no_bpjs').value      = '';
+    document.getElementById('tipe_bpjs').value      = '';
     document.getElementById('nama_pasien').value  = '';
     document.querySelector('input[name="telp"]').value    = '';
     document.querySelector('textarea[name="alamat"]').value = '';
     document.getElementById('patient-selected-badge').classList.add('d-none');
     document.getElementById('btn-load-history').style.display = 'none';
     document.getElementById('no_bpjs_container').style.display = 'none';
+    document.getElementById('tipe_bpjs_container').style.display = 'none';
     document.getElementById('history-tag-container').classList.add('d-none');
 }
 
@@ -697,7 +701,9 @@ function buildCheckoutSummary() {
     const nikEl   = document.getElementById('nik');
     const nik     = nikEl ? formatFieldText(nikEl.value, '—') : '—';
     const noBpjsEl   = document.getElementById('no_bpjs');
+    const tipeBpjsEl = document.getElementById('tipe_bpjs');
     const noBpjs     = noBpjsEl ? formatFieldText(noBpjsEl.value, '—') : '—';
+    const tipeBpjs   = tipeBpjsEl ? formatFieldText(tipeBpjsEl.value, '—') : '—';
     const alamat     = formatFieldText(document.querySelector('textarea[name="alamat"]').value, '—');
     const namaDokter = formatFieldText(document.getElementById('nama_dokter').value, '—');
     const tglResep   = formatDateInput(document.querySelector('input[name="tgl_resep"]').value);
@@ -891,6 +897,9 @@ function buildCheckoutSummary() {
 /* ==========================================================
    HISTORY REKAM MEDIS
 ========================================================== */
+// Store currently selected history data for copy
+let _selectedHistoryData = null;
+
 function loadPatientHistory() {
     const pid = document.getElementById('patient_id').value;
     if (!pid) return;
@@ -898,8 +907,9 @@ function loadPatientHistory() {
     fetch(`{{ route('patients.latest-refraction', ':pid') }}`.replace(':pid', pid))
         .then(r => r.json())
         .then(data => {
+            // Auto-fill transaction refraction from latest record
             if (data.od_sph !== undefined) {
-                const fields = ['od_sph','od_cyl','od_axis','od_add','od_mpd','os_sph','os_cyl','os_axis','os_add','os_mpd'];
+                const fields = ['od_sph','od_cyl','od_axis','od_add','od_mpd','od_prism','os_sph','os_cyl','os_axis','os_add','os_mpd','os_prism'];
                 fields.forEach(f => {
                     const el = document.getElementById(f);
                     if (el && data[f] !== undefined && data[f] !== null) {
@@ -908,7 +918,7 @@ function loadPatientHistory() {
                     }
                 });
                 document.getElementById('history-tag-container').classList.remove('d-none');
-                
+
                 // Set default doctor from latest history
                 if (data.history && data.history.length > 0) {
                     const latestDoc = data.history[0].dokter;
@@ -924,6 +934,7 @@ function loadPatientHistory() {
                 document.getElementById('patient-history-section').classList.remove('d-none');
             } else {
                 document.getElementById('patient-history-section').classList.add('d-none');
+                document.getElementById('history-detail-section').classList.add('d-none');
             }
         })
         .catch(() => {});
@@ -932,45 +943,131 @@ function loadPatientHistory() {
 function renderPatientHistory(history) {
     const container = document.getElementById('patient-history-list');
     container.innerHTML = '';
-    history.forEach(rm => {
+    history.forEach((rm, idx) => {
         const rmDiv = document.createElement('div');
-        rmDiv.className = 'p-3 border-bottom';
+        rmDiv.className = 'p-2 border-bottom d-flex justify-content-between align-items-center';
+        rmDiv.style.cursor = 'pointer';
         rmDiv.innerHTML = `
-            <div class="d-flex justify-content-between align-items-start mb-2">
-                <div>
-                    <span class="badge bg-primary me-2">${rm.tanggal_kunjungan}</span>
-                    <small class="text-muted">Dokter: ${rm.dokter}</small>
-                </div>
-                <button type="button" class="btn btn-xs btn-outline-info" onclick='loadFromHistory("${rm.id}", ${JSON.stringify(rm).replace(/"/g, "&quot;")})'>
-                    Gunakan
-                </button>
+            <div>
+                <span class="badge bg-primary me-2">${rm.tanggal_kunjungan}</span>
+                <small class="text-muted">Dokter: ${rm.dokter}</small>
+                ${rm.keluhan ? `<small class="text-muted ms-2">— ${rm.keluhan}</small>` : ''}
             </div>
-            <table class="table table-sm table-bordered mb-0" style="font-size:.8rem">
-                <tbody>
-                    <tr><td>OD</td><td>${rm.od_sph||'-'}</td><td>${rm.od_cyl||'-'}</td><td>${rm.od_axis||'-'}</td><td>${rm.od_add||'-'}</td><td>${rm.od_pd||'-'}</td></tr>
-                    <tr><td>OS</td><td>${rm.os_sph||'-'}</td><td>${rm.os_cyl||'-'}</td><td>${rm.os_axis||'-'}</td><td>${rm.os_add||'-'}</td><td>${rm.os_pd||'-'}</td></tr>
-                </tbody>
-            </table>
+            <button type="button" class="btn btn-xs btn-outline-info" onclick='selectHistory(${JSON.stringify(rm).replace(/'/g, "&#39;")})'>
+                <i class="bi bi-eye me-1"></i>Detail
+            </button>
         `;
         container.appendChild(rmDiv);
     });
 }
-function loadFromHistory(rmId, rmData) {
-    ['od_sph','od_cyl','od_axis','od_add','od_mpd', 'od_prism','os_sph','os_cyl','os_axis','os_add','os_mpd', 'os_prism'].forEach(f => {
-        const el = document.getElementById(f);
+
+function selectHistory(rmData) {
+    _selectedHistoryData = rmData;
+
+    // Show detail section
+    document.getElementById('history-detail-section').classList.remove('d-none');
+    document.getElementById('history-detail-date').textContent = rmData.tanggal_kunjungan + (rmData.dokter !== '-' ? ' — ' + rmData.dokter : '');
+
+    // --- Old Glasses ---
+    const og = rmData.old_glasses;
+    const ogTable = document.getElementById('history-og-table');
+    const ogEmpty = document.getElementById('history-og-empty');
+    if (og) {
+        ogTable.classList.remove('d-none');
+        ogEmpty.classList.add('d-none');
+        ['od_sph','od_cyl','od_axis','od_add','od_pd','od_prism','os_sph','os_cyl','os_axis','os_add','os_pd','os_prism'].forEach(f => {
+            const el = document.getElementById('hog_' + f);
+            if (el) el.textContent = og[f] || '-';
+        });
+    } else {
+        ogTable.classList.add('d-none');
+        ogEmpty.classList.remove('d-none');
+    }
+
+    // --- Refraction ---
+    const ref = rmData.refraction;
+    const refTable = document.getElementById('history-ref-table');
+    const refEmpty = document.getElementById('history-ref-empty');
+    if (ref) {
+        refTable.classList.remove('d-none');
+        refEmpty.classList.add('d-none');
+        ['od_sc','od_sph','od_cyl','od_axis','od_add','od_pd','od_prism','od_cc','os_sc','os_sph','os_cyl','os_axis','os_add','os_pd','os_prism','os_cc'].forEach(f => {
+            const el = document.getElementById('href_' + f);
+            if (el) el.textContent = ref[f] || '-';
+        });
+    } else {
+        refTable.classList.add('d-none');
+        refEmpty.classList.remove('d-none');
+    }
+
+    // --- Prescription ---
+    const presc = rmData.prescription;
+    const prescTable = document.getElementById('history-presc-table');
+    const prescEmpty = document.getElementById('history-presc-empty');
+    if (presc) {
+        prescTable.classList.remove('d-none');
+        prescEmpty.classList.add('d-none');
+        ['od_sph','od_cyl','od_axis','od_add','od_mpd','od_prism','od_cc','os_sph','os_cyl','os_axis','os_add','os_pd','os_prism','os_cc'].forEach(f => {
+            const el = document.getElementById('hpresc_' + f);
+            if (el) el.textContent = presc[f] || '-';
+        });
+    } else {
+        prescTable.classList.add('d-none');
+        prescEmpty.classList.remove('d-none');
+    }
+
+    // Show "Ambil dari Refraksi" button if refraction data exists
+    const copyBtn = document.getElementById('btn-copy-from-refraction');
+    if (ref) {
+        copyBtn.classList.remove('d-none');
+    } else {
+        copyBtn.classList.add('d-none');
+    }
+}
+
+function clearHistoryDetail() {
+    document.getElementById('history-detail-section').classList.add('d-none');
+    document.getElementById('btn-copy-from-refraction').classList.add('d-none');
+    _selectedHistoryData = null;
+}
+
+function copyRefractionToTransaction() {
+    if (!_selectedHistoryData || !_selectedHistoryData.refraction) {
+        snackbar('Tidak ada data refraksi', 'warning');
+        return;
+    }
+    const ref = _selectedHistoryData.refraction;
+    // Map refraction fields to transaction input fields
+    // Note: refraction uses od_pd but transaction uses od_mpd
+    const mapping = {
+        'od_sph': ref.od_sph, 'od_cyl': ref.od_cyl, 'od_axis': ref.od_axis,
+        'od_add': ref.od_add, 'od_mpd': ref.od_pd, 'od_prism': ref.od_prism,
+        'os_sph': ref.os_sph, 'os_cyl': ref.os_cyl, 'os_axis': ref.os_axis,
+        'os_add': ref.os_add, 'os_mpd': ref.os_pd, 'os_prism': ref.os_prism,
+    };
+    Object.entries(mapping).forEach(([inputId, value]) => {
+        const el = document.getElementById(inputId);
         if (el) {
-            let key = f;
-            if (f.endsWith('_mpd')) key = f.replace('_mpd', '_pd'); 
-            el.value = rmData[key] || '';
+            el.value = value || '';
+            el.dispatchEvent(new Event('input', { bubbles: true }));
         }
     });
-    // Fill doctor name
-    if (rmData.dokter && rmData.dokter !== '-') {
-        document.getElementById('nama_dokter').value = rmData.dokter;
+
+    // Also fill doctor name
+    if (ref.doctor_name && ref.doctor_name !== '-') {
+        document.getElementById('nama_dokter').value = ref.doctor_name;
     }
 
     document.getElementById('history-tag-container').classList.remove('d-none');
-    snackbar('Refraksi dimuat', 'info');
+    snackbar('Data refraksi disalin ke ukuran transaksi', 'info');
+}
+
+function loadFromHistory(rmId, rmData) {
+    // Legacy compatibility — redirect to selectHistory + copy
+    selectHistory(rmData);
+    if (rmData.refraction) {
+        copyRefractionToTransaction();
+    }
 }
 
 function copyOdToOs() {
@@ -981,6 +1078,58 @@ function copyOdToOs() {
     });
     snackbar('Disalin ke OS', 'info');
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+    const input = document.getElementById('diagnosis_search');
+    const resultBox = document.getElementById('diagnosis_result');
+
+    if (!input || !resultBox) return;
+
+    let timeout = null;
+
+    input.addEventListener('keyup', function () {
+        const query = this.value;
+
+        clearTimeout(timeout);
+
+        if (query.length < 2) {
+            resultBox.innerHTML = '';
+            return;
+        }
+
+        timeout = setTimeout(() => {
+            fetch(`{{ route('diagnoses.search') }}?q=${encodeURIComponent(query)}`)
+                .then(res => res.json())
+                .then(data => {
+                    resultBox.innerHTML = '';
+
+                    data.forEach(item => {
+                        const el = document.createElement('a');
+                        el.href = '#';
+                        el.classList.add('list-group-item', 'list-group-item-action');
+                        el.textContent = `${item.name}`;
+
+                        el.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            input.value = `${item.name}`;
+                            resultBox.innerHTML = '';
+                        });
+
+                        resultBox.appendChild(el);
+                    });
+                })
+                .catch(() => {
+                    resultBox.innerHTML = '';
+                });
+        }, 300);
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!input.contains(e.target) && !resultBox.contains(e.target)) {
+            resultBox.innerHTML = '';
+        }
+    });
+});
 
 /* ==========================================================
    SPA / EDIT LOGIC
@@ -1015,6 +1164,8 @@ function fillForm(trx) {
     sv('input[name="nik"]',    selectedNik);
     const selectedBpjs = p.no_bpjs || trx.no_bpjs || '';
     sv('input[name="no_bpjs"]',    selectedBpjs);
+    const selectedTipeBpjs = p.tipe_bpjs || trx.tipe_bpjs || '';
+    sv('input[name="tipe_bpjs"]', selectedTipeBpjs);
     sv('input[name="nama"]',       p.nama     || trx.nama_pasien || '');
     sv('textarea[name="alamat"]',  p.alamat   || trx.alamat_pasien || '');
     sv('input[name="telp"]',       p.no_hp    || trx.telp_pasien || '');

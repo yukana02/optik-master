@@ -219,6 +219,8 @@ class PatientController extends Controller
                 $query->latest('visit_date')->take(5);
             },
             'medicalRecords.refraction',
+            'medicalRecords.oldGlasses',
+            'medicalRecords.prescription',
         ]);
 
         $latest = $patient->medicalRecords->first();
@@ -226,49 +228,90 @@ class PatientController extends Controller
 
         $history = $patient->medicalRecords->map(function ($rm) {
             $refraction = $rm->refraction;
+            $oldGlasses = $rm->oldGlasses;
+            $prescription = $rm->prescription;
+
             return [
                 'id' => $rm->id,
                 'tanggal_kunjungan' => $rm->visit_date->format('d M Y'),
-                'dokter' => $refraction?->doctor_name ?? '-',
+                'dokter' => $refraction?->doctor_name ?? $prescription?->doctor_name ?? '-',
                 'keluhan' => $rm->complaint,
-                'od_sc' => $refraction?->od_sc,
-                'od_sph' => $refraction?->od_sph,
-                'od_cyl' => $refraction?->od_cyl,
-                'od_axis' => $refraction?->od_axis,
-                'od_prism' => $refraction?->od_prism,
-                'od_add' => $refraction?->od_add,
-                'od_pd' => $refraction?->od_pd,
-                'od_cc' => $refraction?->od_cc,
-                'os_sc' => $refraction?->os_sc,
-                'os_sph' => $refraction?->os_sph,
-                'os_cyl' => $refraction?->os_cyl,
-                'os_axis' => $refraction?->os_axis,
-                'os_prism' => $refraction?->os_prism,
-                'os_add' => $refraction?->os_add,
-                'os_pd' => $refraction?->os_pd,
-                'os_cc' => $refraction?->os_cc,
+
+                // Old Glasses (sub-object)
+                'old_glasses' => $oldGlasses ? [
+                    'od_sph' => $oldGlasses->od_sph,
+                    'od_cyl' => $oldGlasses->od_cyl,
+                    'od_axis' => $oldGlasses->od_axis,
+                    'od_add' => $oldGlasses->od_add,
+                    'od_pd' => $oldGlasses->od_pd,
+                    'od_prism' => $oldGlasses->od_prism,
+                    'os_sph' => $oldGlasses->os_sph,
+                    'os_cyl' => $oldGlasses->os_cyl,
+                    'os_axis' => $oldGlasses->os_axis,
+                    'os_add' => $oldGlasses->os_add,
+                    'os_pd' => $oldGlasses->os_pd,
+                    'os_prism' => $oldGlasses->os_prism,
+                ] : null,
+
+                // Refraction (sub-object)
+                'refraction' => $refraction ? [
+                    'doctor_name' => $refraction->doctor_name,
+                    'diagnosis' => $refraction->diagnosis,
+                    'od_sc' => $refraction->od_sc,
+                    'od_sph' => $refraction->od_sph,
+                    'od_cyl' => $refraction->od_cyl,
+                    'od_axis' => $refraction->od_axis,
+                    'od_add' => $refraction->od_add,
+                    'od_pd' => $refraction->od_pd,
+                    'od_prism' => $refraction->od_prism,
+                    'od_cc' => $refraction->od_cc,
+                    'os_sc' => $refraction->os_sc,
+                    'os_sph' => $refraction->os_sph,
+                    'os_cyl' => $refraction->os_cyl,
+                    'os_axis' => $refraction->os_axis,
+                    'os_add' => $refraction->os_add,
+                    'os_pd' => $refraction->os_pd,
+                    'os_prism' => $refraction->os_prism,
+                    'os_cc' => $refraction->os_cc,
+                ] : null,
+
+                // Prescription (sub-object)
+                'prescription' => $prescription ? [
+                    'doctor_name' => $prescription->doctor_name,
+                    'diagnosis' => $prescription->diagnosis,
+                    'od_sph' => $prescription->od_sph,
+                    'od_cyl' => $prescription->od_cyl,
+                    'od_axis' => $prescription->od_axis,
+                    'od_add' => $prescription->od_add,
+                    'od_mpd' => $prescription->od_mpd,
+                    'od_prism' => $prescription->od_prism,
+                    'od_cc' => $prescription->od_cc,
+                    'os_sph' => $prescription->os_sph,
+                    'os_cyl' => $prescription->os_cyl,
+                    'os_axis' => $prescription->os_axis,
+                    'os_add' => $prescription->os_add,
+                    'os_pd' => $prescription->os_pd,
+                    'os_prism' => $prescription->os_prism,
+                    'os_cc' => $prescription->os_cc,
+                ] : null,
             ];
         });
 
         return response()->json([
-            // Backward compatibility: refraksi terakhir
-            'od_sc' => $latestRefraction?->od_sc,
+            // Backward compatibility: refraksi terakhir (auto-fill)
             'od_sph' => $latestRefraction?->od_sph,
             'od_cyl' => $latestRefraction?->od_cyl,
             'od_axis' => $latestRefraction?->od_axis,
-            'od_prism' => $latestRefraction?->od_prism,
             'od_add' => $latestRefraction?->od_add,
             'od_mpd' => $latestRefraction?->od_pd,
-            'od_cc' => $latestRefraction?->od_cc,
-            'os_sc' => $latestRefraction?->os_sc,
+            'od_prism' => $latestRefraction?->od_prism,
             'os_sph' => $latestRefraction?->os_sph,
             'os_cyl' => $latestRefraction?->os_cyl,
             'os_axis' => $latestRefraction?->os_axis,
-            'os_prism' => $latestRefraction?->os_prism,
             'os_add' => $latestRefraction?->os_add,
             'os_mpd' => $latestRefraction?->os_pd,
-            'os_cc' => $latestRefraction?->os_cc,
-            // Histori lengkap
+            'os_prism' => $latestRefraction?->os_prism,
+            // Histori lengkap (terstruktur)
             'history' => $history,
         ]);
     }
