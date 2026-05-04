@@ -104,13 +104,6 @@ class MedicalRecordController extends Controller
         return view('admin.medical-records.show', compact('medicalRecord'));
     }
 
-    public function detail(MedicalRecord $medicalRecord)
-    {
-        $medicalRecord->load(['patient', 'createdBy', 'transaction.items.product']);
-
-        return view('admin.medical-records.detail', compact('medicalRecord'));
-    }
-
     public function edit(MedicalRecord $medicalRecord, Request $request)
     {
         $dokters = User::role(['super_admin', 'admin'])

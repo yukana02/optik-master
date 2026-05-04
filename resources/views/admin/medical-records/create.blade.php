@@ -126,6 +126,113 @@
                     </div>
                 </div>
 
+                {{-- Resep Dokter --}}
+                <div class="card mb-3">
+                    <div class="card-header fw-semibold">Ukuran Resep Dokter</div>
+                    <div class="card-body">
+
+                        <div class="table-responsive mb-3">
+                            <table class="table table-bordered align-middle text-center">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>SPH</th>
+                                        <th>CYL</th>
+                                        <th>AXIS</th>
+                                        <th>PRISM</th>
+                                        <th>ADD</th>
+                                        <th>MPD</th>
+                                        <th>CC</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <th>
+                                            <span class="badge bg-danger fs-6">OD</span>
+                                            <div class="text-muted" style="font-size:.72rem">Kanan</div>
+                                        </th>
+                                        <td><input type="number" name="rx_od_sph" class="form-control input-compact" step="0.25"
+                                                min="-30" max="30" placeholder="0.00"></td>
+                                        <td><input type="number" name="rx_od_cyl" class="form-control input-compact" step="0.25"
+                                                min="-30" max="30" placeholder="0.00"></td>
+                                        <td><input type="number" name="rx_od_axis" class="form-control input-compact" step="0.25"
+                                                min="-30" max="30" placeholder="0.00"></td>
+                                        <td><input type="number" name="rx_od_prism" class="form-control input-compact" step="0.25"
+                                                min="-30" max="30" placeholder="0.00"></td>
+                                        <td><input type="number" name="rx_od_add" class="form-control input-compact" step="0.25"
+                                                min="-30" max="30" placeholder="0.00"></td>
+                                        <td><input type="number" name="rx_od_mpd" class="form-control input-compact" step="0.25"
+                                                min="-30" max="30" placeholder="0.00"></td>
+                                        <td><input type="text" name="rx_od_cc" class="form-control input-compact" placeholder="3/60"></td>
+                                    </tr>
+                                    <tr>
+                                        <th>
+                                            <span class="badge bg-info fs-6">OS</span>
+                                            <div class="text-muted" style="font-size:.72rem">Kiri</div>
+                                        </th>
+                                        <td><input type="number" name="rx_os_sph" class="form-control input-compact" step="0.25"
+                                                min="-30" max="30" placeholder="0.00"></td>
+                                        <td><input type="number" name="rx_os_cyl" class="form-control input-compact" step="0.25"
+                                                min="-30" max="30" placeholder="0.00"></td>
+                                        <td><input type="number" name="rx_os_axis" class="form-control input-compact" step="0.25"
+                                                min="-30" max="30" placeholder="0.00"></td>
+                                        <td><input type="number" name="rx_os_prism" class="form-control input-compact" step="0.25"
+                                                min="-30" max="30" placeholder="0.00"></td>
+                                        <td><input type="number" name="rx_os_add" class="form-control input-compact" step="0.25"
+                                                min="-30" max="30" placeholder="0.00"></td>
+                                        <td><input type="number" name="rx_os_mpd" class="form-control input-compact" step="0.25"
+                                                min="-30" max="30" placeholder="0.00"></td>
+                                        <td><input type="text" name="rx_os_cc" class="form-control input-compact" placeholder="3/60"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="row">
+                            {{-- Diagnosis --}}
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">
+                                    Diagnosis <span class="text-danger">*</span>
+                                </label>
+
+                                {{-- Input tampil --}}
+                                <input type="text"
+                                    id="rx_diagnosis_search"
+                                    name="rx_diagnosis"
+                                    class="form-control @error('rx_diagnosis') is-invalid @enderror"
+                                    placeholder="Cari atau ketik Diagnosis..."
+                                    value="{{ old('rx_diagnosis', $selectedDiagnosis?->name) }}"
+                                    autocomplete="off"
+                                    required>
+
+                                {{-- Dropdown hasil --}}
+                                <div id="rx_diagnosis_result" class="list-group position-absolute w-100 shadow"
+                                    style="z-index:1000;"></div>
+
+                                @error('rx_diagnosis')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Asal Resep / Dokter</label>
+                                <input type="text" name="rx_doctor_name" class="form-control">
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Tanggal Resep</label>
+                                <input type="date" name="rx_exam_date" class="form-control">
+                            </div>
+
+                            <div class="col-md-12 mt-2">
+                                <label class="form-label fw-semibold">Keterangan</label>
+                                <input type="text" name="rx_notes" class="form-control">
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
                 {{-- Hasil Refraksi --}}
                 <div class="card mb-3">
                     <div class="card-header fw-semibold">Hasil Refraksi</div>
@@ -230,113 +337,6 @@
                             <div class="col-md-12 mt-2">
                                 <label class="form-label fw-semibold">Keterangan</label>
                                 <input type="text" name="ref_notes" class="form-control">
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-
-                {{-- Resep Dokter --}}
-                <div class="card mb-3">
-                    <div class="card-header fw-semibold">Ukuran Resep Dokter</div>
-                    <div class="card-body">
-
-                        <div class="table-responsive mb-3">
-                            <table class="table table-bordered align-middle text-center">
-                                <thead>
-                                    <tr>
-                                        <th></th>
-                                        <th>SPH</th>
-                                        <th>CYL</th>
-                                        <th>AXIS</th>
-                                        <th>PRISM</th>
-                                        <th>ADD</th>
-                                        <th>MPD</th>
-                                        <th>CC</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <th>
-                                            <span class="badge bg-danger fs-6">OD</span>
-                                            <div class="text-muted" style="font-size:.72rem">Kanan</div>
-                                        </th>
-                                        <td><input type="number" name="rx_od_sph" class="form-control input-compact" step="0.25"
-                                                min="-30" max="30" placeholder="0.00"></td>
-                                        <td><input type="number" name="rx_od_cyl" class="form-control input-compact" step="0.25"
-                                                min="-30" max="30" placeholder="0.00"></td>
-                                        <td><input type="number" name="rx_od_axis" class="form-control input-compact" step="0.25"
-                                                min="-30" max="30" placeholder="0.00"></td>
-                                        <td><input type="number" name="rx_od_prism" class="form-control input-compact" step="0.25"
-                                                min="-30" max="30" placeholder="0.00"></td>
-                                        <td><input type="number" name="rx_od_add" class="form-control input-compact" step="0.25"
-                                                min="-30" max="30" placeholder="0.00"></td>
-                                        <td><input type="number" name="rx_od_mpd" class="form-control input-compact" step="0.25"
-                                                min="-30" max="30" placeholder="0.00"></td>
-                                        <td><input type="text" name="rx_od_cc" class="form-control input-compact" placeholder="3/60"></td>
-                                    </tr>
-                                    <tr>
-                                        <th>
-                                            <span class="badge bg-info fs-6">OS</span>
-                                            <div class="text-muted" style="font-size:.72rem">Kiri</div>
-                                        </th>
-                                        <td><input type="number" name="rx_os_sph" class="form-control input-compact" step="0.25"
-                                                min="-30" max="30" placeholder="0.00"></td>
-                                        <td><input type="number" name="rx_os_cyl" class="form-control input-compact" step="0.25"
-                                                min="-30" max="30" placeholder="0.00"></td>
-                                        <td><input type="number" name="rx_os_axis" class="form-control input-compact" step="0.25"
-                                                min="-30" max="30" placeholder="0.00"></td>
-                                        <td><input type="number" name="rx_os_prism" class="form-control input-compact" step="0.25"
-                                                min="-30" max="30" placeholder="0.00"></td>
-                                        <td><input type="number" name="rx_os_add" class="form-control input-compact" step="0.25"
-                                                min="-30" max="30" placeholder="0.00"></td>
-                                        <td><input type="number" name="rx_os_mpd" class="form-control input-compact" step="0.25"
-                                                min="-30" max="30" placeholder="0.00"></td>
-                                        <td><input type="text" name="rx_os_cc" class="form-control input-compact" placeholder="3/60"></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div class="row">
-                            {{-- Diagnosis --}}
-                            <div class="col-md-4">
-                                <label class="form-label fw-semibold">
-                                    Diagnosis <span class="text-danger">*</span>
-                                </label>
-
-                                {{-- Input tampil --}}
-                                <input type="text"
-                                    id="rx_diagnosis_search"
-                                    name="rx_diagnosis"
-                                    class="form-control @error('rx_diagnosis') is-invalid @enderror"
-                                    placeholder="Cari atau ketik Diagnosis..."
-                                    value="{{ old('rx_diagnosis', $selectedDiagnosis?->name) }}"
-                                    autocomplete="off"
-                                    required>
-
-                                {{-- Dropdown hasil --}}
-                                <div id="rx_diagnosis_result" class="list-group position-absolute w-100 shadow"
-                                    style="z-index:1000;"></div>
-
-                                @error('rx_diagnosis')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="col-md-4">
-                                <label class="form-label fw-semibold">Asal Resep / Dokter</label>
-                                <input type="text" name="rx_doctor_name" class="form-control">
-                            </div>
-
-                            <div class="col-md-4">
-                                <label class="form-label fw-semibold">Tanggal Resep</label>
-                                <input type="date" name="rx_exam_date" class="form-control">
-                            </div>
-
-                            <div class="col-md-12 mt-2">
-                                <label class="form-label fw-semibold">Keterangan</label>
-                                <input type="text" name="rx_notes" class="form-control">
                             </div>
                         </div>
 

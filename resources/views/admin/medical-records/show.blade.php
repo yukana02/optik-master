@@ -99,6 +99,88 @@
                 </div>
             </div>
         </div>
+        
+        {{-- Resep Dokter --}}
+        <div class="card mb-3">
+            <div class="card-header fw-semibold">Ukuran Resep Dokter</div>
+            <div class="card-body">
+
+                <div class="table-responsive mb-3">
+                    <table class="table table-bordered align-middle text-center">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>SPH</th>
+                                <th>CYL</th>
+                                <th>AXIS</th>
+                                <th>PRISM</th>
+                                <th>ADD</th>
+                                <th>MPD</th>
+                                <th>CC</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th>
+                                    <span class="badge bg-danger fs-6">OD</span>
+                                    <div class="text-muted" style="font-size:.72rem">Kanan</div>
+                                </th>
+                                <td class="column-compact"><span>{{ $medicalRecord->prescription->od_sph ?? '-' }}</span></td>
+                                <td class="column-compact"><span>{{ $medicalRecord->prescription->od_cyl ?? '-' }}</span></td>
+                                <td class="column-compact"><span>{{ $medicalRecord->prescription->od_axis ?? '-' }}</span></td>
+                                <td class="column-compact"><span>{{ $medicalRecord->prescription->od_prism ?? '-' }}</span></td>
+                                <td class="column-compact"><span>{{ $medicalRecord->prescription->od_add ?? '-' }}</span></td>
+                                <td class="column-compact"><span>{{ $medicalRecord->prescription->od_mpd ?? '-' }}</span></td>
+                                <td class="column-compact"><span>{{ $medicalRecord->prescription->od_cc ?? '-' }}</span></td>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <span class="badge bg-info fs-6">OS</span>
+                                    <div class="text-muted" style="font-size:.72rem">Kiri</div>
+                                </th>
+                                <td class="column-compact"><span>{{ $medicalRecord->prescription->os_sph ?? '-' }}</span></td>
+                                <td class="column-compact"><span>{{ $medicalRecord->prescription->os_cyl ?? '-' }}</span></td>
+                                <td class="column-compact"><span>{{ $medicalRecord->prescription->os_axis ?? '-' }}</span></td>
+                                <td class="column-compact"><span>{{ $medicalRecord->prescription->os_prism ?? '-' }}</span></td>
+                                <td class="column-compact"><span>{{ $medicalRecord->prescription->os_add ?? '-' }}</span></td>
+                                <td class="column-compact"><span>{{ $medicalRecord->prescription->os_mpd ?? '-' }}</span></td>
+                                <td class="column-compact"><span>{{ $medicalRecord->prescription->os_cc ?? '-' }}</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="row">
+                    {{-- Diagnosis --}}
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">
+                            Diagnosis <span class="text-danger"></span>
+                        </label>
+                        <br>
+                        <span>{{ $medicalRecord->prescription->diagnosis ?? '-' }}</span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Asal Resep / Dokter</label>
+                        <br>
+                        <span>{{ $medicalRecord->prescription->doctor_name ?? '-' }}</span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Tanggal Resep</label>
+                        <br>
+                        <span>{{ $medicalRecord->prescription->exam_date ?? '-' }}</span>
+                    </div>
+
+                    <div class="col-md-12 mt-2">
+                        <label class="form-label fw-semibold">Keterangan</label>
+                        <br>
+                        <span>{{ $medicalRecord->prescription->notes ?? '-' }}</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
 
         {{-- Hasil Refraksi --}}
         <div class="card mb-3">
@@ -179,88 +261,6 @@
                         <label class="form-label fw-semibold">Keterangan</label>
                         <br>
                         <span>{{ $medicalRecord->refraction->notes ?? '-' }}</span>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-        {{-- Resep Dokter --}}
-        <div class="card mb-3">
-            <div class="card-header fw-semibold">Ukuran Resep Dokter</div>
-            <div class="card-body">
-
-                <div class="table-responsive mb-3">
-                    <table class="table table-bordered align-middle text-center">
-                        <thead>
-                            <tr>
-                                <th></th>
-                                <th>SPH</th>
-                                <th>CYL</th>
-                                <th>AXIS</th>
-                                <th>PRISM</th>
-                                <th>ADD</th>
-                                <th>MPD</th>
-                                <th>CC</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <th>
-                                    <span class="badge bg-danger fs-6">OD</span>
-                                    <div class="text-muted" style="font-size:.72rem">Kanan</div>
-                                </th>
-                                <td class="column-compact"><span>{{ $medicalRecord->prescription->od_sph ?? '-' }}</span></td>
-                                <td class="column-compact"><span>{{ $medicalRecord->prescription->od_cyl ?? '-' }}</span></td>
-                                <td class="column-compact"><span>{{ $medicalRecord->prescription->od_axis ?? '-' }}</span></td>
-                                <td class="column-compact"><span>{{ $medicalRecord->prescription->od_prism ?? '-' }}</span></td>
-                                <td class="column-compact"><span>{{ $medicalRecord->prescription->od_add ?? '-' }}</span></td>
-                                <td class="column-compact"><span>{{ $medicalRecord->prescription->od_mpd ?? '-' }}</span></td>
-                                <td class="column-compact"><span>{{ $medicalRecord->prescription->od_cc ?? '-' }}</span></td>
-                            </tr>
-                            <tr>
-                                <th>
-                                    <span class="badge bg-info fs-6">OS</span>
-                                    <div class="text-muted" style="font-size:.72rem">Kiri</div>
-                                </th>
-                                <td class="column-compact"><span>{{ $medicalRecord->prescription->os_sph ?? '-' }}</span></td>
-                                <td class="column-compact"><span>{{ $medicalRecord->prescription->os_cyl ?? '-' }}</span></td>
-                                <td class="column-compact"><span>{{ $medicalRecord->prescription->os_axis ?? '-' }}</span></td>
-                                <td class="column-compact"><span>{{ $medicalRecord->prescription->os_prism ?? '-' }}</span></td>
-                                <td class="column-compact"><span>{{ $medicalRecord->prescription->os_add ?? '-' }}</span></td>
-                                <td class="column-compact"><span>{{ $medicalRecord->prescription->os_mpd ?? '-' }}</span></td>
-                                <td class="column-compact"><span>{{ $medicalRecord->prescription->os_cc ?? '-' }}</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="row">
-                    {{-- Diagnosis --}}
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold">
-                            Diagnosis <span class="text-danger"></span>
-                        </label>
-                        <br>
-                        <span>{{ $medicalRecord->prescription->diagnosis ?? '-' }}</span>
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold">Asal Resep / Dokter</label>
-                        <br>
-                        <span>{{ $medicalRecord->prescription->doctor_name ?? '-' }}</span>
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold">Tanggal Resep</label>
-                        <br>
-                        <span>{{ $medicalRecord->prescription->exam_date ?? '-' }}</span>
-                    </div>
-
-                    <div class="col-md-12 mt-2">
-                        <label class="form-label fw-semibold">Keterangan</label>
-                        <br>
-                        <span>{{ $medicalRecord->prescription->notes ?? '-' }}</span>
                     </div>
                 </div>
 

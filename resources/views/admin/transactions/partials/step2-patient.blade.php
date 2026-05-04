@@ -152,25 +152,6 @@
                             </div>
                         </div>
 
-                        {{-- Refraction Table --}}
-                        <div class="mb-2">
-                            <div class="d-flex align-items-center gap-1 mb-1">
-                                <span class="badge bg-info-subtle text-info" style="font-size:.7rem">Hasil Refraksi</span>
-                                <span id="history-ref-empty" class="text-muted small d-none">— tidak ada data</span>
-                            </div>
-                            <div id="history-ref-table" class="table-responsive">
-                                <table class="table table-sm table-bordered mb-0" style="font-size:.78rem">
-                                    <thead class="table-light">
-                                        <tr><th></th><th>SC</th><th>SPH</th><th>CYL</th><th>AXIS</th><th>PRISM</th><th>ADD</th><th>MPD</th><th>CC</th></tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr><td class="text-primary fw-bold">OD</td><td id="href_od_sc">-</td><td id="href_od_sph">-</td><td id="href_od_cyl">-</td><td id="href_od_axis">-</td><td id="href_od_prism">-</td><td id="href_od_add">-</td><td id="href_od_mpd">-</td><td id="href_od_cc">-</td></tr>
-                                        <tr><td class="text-danger fw-bold">OS</td><td id="href_os_sc">-</td><td id="href_os_sph">-</td><td id="href_os_cyl">-</td><td id="href_os_axis">-</td><td id="href_os_prism">-</td><td id="href_os_add">-</td><td id="href_os_mpd">-</td><td id="href_os_cc">-</td></tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
                         {{-- Prescription Table --}}
                         <div class="mb-2">
                             <div class="d-flex align-items-center gap-1 mb-1">
@@ -189,6 +170,25 @@
                                 </table>
                             </div>
                         </div>
+
+                        {{-- Refraction Table --}}
+                        <div class="mb-2">
+                            <div class="d-flex align-items-center gap-1 mb-1">
+                                <span class="badge bg-info-subtle text-info" style="font-size:.7rem">Hasil Refraksi</span>
+                                <span id="history-ref-empty" class="text-muted small d-none">— tidak ada data</span>
+                            </div>
+                            <div id="history-ref-table" class="table-responsive">
+                                <table class="table table-sm table-bordered mb-0" style="font-size:.78rem">
+                                    <thead class="table-light">
+                                        <tr><th></th><th>SC</th><th>SPH</th><th>CYL</th><th>AXIS</th><th>PRISM</th><th>ADD</th><th>MPD</th><th>CC</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td class="text-primary fw-bold">OD</td><td id="href_od_sc">-</td><td id="href_od_sph">-</td><td id="href_od_cyl">-</td><td id="href_od_axis">-</td><td id="href_od_prism">-</td><td id="href_od_add">-</td><td id="href_od_mpd">-</td><td id="href_od_cc">-</td></tr>
+                                        <tr><td class="text-danger fw-bold">OS</td><td id="href_os_sc">-</td><td id="href_os_sph">-</td><td id="href_os_cyl">-</td><td id="href_os_axis">-</td><td id="href_os_prism">-</td><td id="href_os_add">-</td><td id="href_os_mpd">-</td><td id="href_os_cc">-</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>                   
                 </div>
 
@@ -197,7 +197,6 @@
                     <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
                         <h6 class="card-header-section mb-0">
                             <i class="bi bi-eye"></i> Ukuran Lensa Transaksi
-                            <span class="badge-req ms-1">wajib</span>
                         </h6>
                         <button type="button" id="btn-copy-from-refraction" class="btn btn-xs btn-outline-info d-none" onclick="copyRefractionToTransaction()">
                             <i class="bi bi-arrow-down-circle me-1"></i>Ambil dari Refraksi

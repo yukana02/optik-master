@@ -104,6 +104,90 @@
                     </div>
                 </div>
             </div>
+            
+            {{-- Ukuran Resep Dokter --}}
+            <div class="card mb-3">
+                <div class="card-header p-3"><i class="bi bi-eyeglasses text-primary me-2"></i>Ukuran Resep Dokter</div>
+                <div class="card-body p-4">
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle">
+                            <thead class="table-light text-center">
+                                <tr>
+                                    <th>Mata</th>
+                                    <th>SPH</th>
+                                    <th>CYL</th>
+                                    <th>AXIS</th>
+                                    <th>ADD</th>
+                                    <th>PD</th>
+                                    <th>Visus</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach([['od','Kanan','danger'],['os','Kiri','info']] as [$eye,$label,$color])
+                                <tr>
+                                    <td class="text-center">
+                                        <span class="badge bg-{{ $color }} fs-6">{{ strtoupper($eye) }}</span>
+                                        <div class="text-muted" style="font-size:.72rem">{{ $label }}</div>
+                                    </td>
+                                    @foreach(['sph','cyl','axis', 'prism', 'add', 'mpd', 'cc'] as $field)
+                                    <td>
+                                        <input 
+                                            type="number" 
+                                            name="rx_{{ $eye }}_{{ $field }}"
+                                            class="form-control text-center"
+                                            step="{{ in_array($field,['axis']) ? 1 : 0.25 }}"
+                                            value="{{ old("rx_{$eye}_{$field}", $medicalRecord->prescription?->{"{$eye}_{$field}"}) ?? '' }}"
+                                            placeholder="{{ empty($value) ? '-' : '' }}"
+                                        >
+                                    </td>
+                                    @endforeach
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="row g-3 mt-1">
+                        {{-- Diagnosis --}}
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">
+                                Diagnosis <span class="text-danger">*</span>
+                            </label>
+
+                            {{-- Input tampil --}}
+                            <input type="text" id="rx_diagnosis_search" name="rx_diagnosis"
+                                class="form-control @error('rx_diagnosis') is-invalid @enderror"
+                                placeholder="Cari atau ketik Diagnosis..."
+                                value="{{ old('rx_diagnosis', $medicalRecord->prescription?->diagnosis ?? '') }}"
+                                autocomplete="off"
+                                required>
+
+                            {{-- Dropdown hasil --}}
+                            <div id="rx_diagnosis_result" class="list-group position-absolute w-100 shadow"
+                                style="z-index:1000;"></div>
+
+                            @error('rx_diagnosis')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Asal Resep / Dokter</label>
+                            <input type="text" name="rx_doctor_name" class="form-control" value="{{ $medicalRecord->prescription->doctor_name }}">
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Tanggal Resep</label>
+                            <input type="date" name="rx_exam_date" class="form-control" value="{{ $medicalRecord->prescription->exam_date }}">
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Catatan Dokter</label>
+                            <textarea name="rx_notes" class="form-control"
+                                rows="3">{{ old('rx_notes',$medicalRecord->prescription?->notes) }}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             {{-- Hasil Refraksi --}}
             <div class="card mb-3">
@@ -185,90 +269,6 @@
                             <label class="form-label fw-semibold">Catatan Dokter</label>
                             <textarea name="catatan" class="form-control"
                                 rows="3">{{ old('catatan',$medicalRecord->refraction?->notes) }}</textarea>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Ukuran Resep Dokter --}}
-            <div class="card mb-3">
-                <div class="card-header p-3"><i class="bi bi-eyeglasses text-primary me-2"></i>Ukuran Resep Dokter</div>
-                <div class="card-body p-4">
-                    <div class="table-responsive">
-                        <table class="table table-bordered align-middle">
-                            <thead class="table-light text-center">
-                                <tr>
-                                    <th>Mata</th>
-                                    <th>SPH</th>
-                                    <th>CYL</th>
-                                    <th>AXIS</th>
-                                    <th>ADD</th>
-                                    <th>PD</th>
-                                    <th>Visus</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach([['od','Kanan','danger'],['os','Kiri','info']] as [$eye,$label,$color])
-                                <tr>
-                                    <td class="text-center">
-                                        <span class="badge bg-{{ $color }} fs-6">{{ strtoupper($eye) }}</span>
-                                        <div class="text-muted" style="font-size:.72rem">{{ $label }}</div>
-                                    </td>
-                                    @foreach(['sph','cyl','axis', 'prism', 'add', 'mpd', 'cc'] as $field)
-                                    <td>
-                                        <input 
-                                            type="number" 
-                                            name="rx_{{ $eye }}_{{ $field }}"
-                                            class="form-control text-center"
-                                            step="{{ in_array($field,['axis']) ? 1 : 0.25 }}"
-                                            value="{{ old("rx_{$eye}_{$field}", $medicalRecord->prescription?->{"{$eye}_{$field}"}) ?? '' }}"
-                                            placeholder="{{ empty($value) ? '-' : '' }}"
-                                        >
-                                    </td>
-                                    @endforeach
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="row g-3 mt-1">
-                        {{-- Diagnosis --}}
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold">
-                                Diagnosis <span class="text-danger">*</span>
-                            </label>
-
-                            {{-- Input tampil --}}
-                            <input type="text" id="rx_diagnosis_search" name="rx_diagnosis"
-                                class="form-control @error('rx_diagnosis') is-invalid @enderror"
-                                placeholder="Cari atau ketik Diagnosis..."
-                                value="{{ old('rx_diagnosis', $medicalRecord->prescription?->diagnosis ?? '') }}"
-                                autocomplete="off"
-                                required>
-
-                            {{-- Dropdown hasil --}}
-                            <div id="rx_diagnosis_result" class="list-group position-absolute w-100 shadow"
-                                style="z-index:1000;"></div>
-
-                            @error('rx_diagnosis')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold">Asal Resep / Dokter</label>
-                            <input type="text" name="rx_doctor_name" class="form-control" value="{{ $medicalRecord->prescription->doctor_name }}">
-                        </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold">Tanggal Resep</label>
-                            <input type="date" name="rx_exam_date" class="form-control" value="{{ $medicalRecord->prescription->exam_date }}">
-                        </div>
-
-                        <div class="col-12">
-                            <label class="form-label fw-semibold">Catatan Dokter</label>
-                            <textarea name="rx_notes" class="form-control"
-                                rows="3">{{ old('rx_notes',$medicalRecord->prescription?->notes) }}</textarea>
                         </div>
                     </div>
                 </div>
