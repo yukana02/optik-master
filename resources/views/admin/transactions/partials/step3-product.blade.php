@@ -234,8 +234,8 @@
             </div>
 
             {{-- Potongan BPJS --}}
-            <div class="mb-3 d-none" id="container_potongan_bpjs">
-                <span class="finance-label">Yang Diganti BPJS Kesehatan (−)</span>
+            <div class="mb-3" id="container_potongan_bpjs">
+                <span class="finance-label">Potongan BPJS Kesehatan (−)</span>
                 <div class="input-group input-group-sm">
                     <span class="input-group-text bg-transparent border-0 text-white fw-bold" style="color: #0dcaf0 !important;">Rp</span>
                     <input type="text" name="potongan_bpjs" id="input_potongan_bpjs" class="form-control text-end" style="border-color: #0dcaf0;" value="0">

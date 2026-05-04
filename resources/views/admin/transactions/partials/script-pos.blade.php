@@ -249,25 +249,35 @@ function bindOptionEvents() {
     const cPotonganBpjs = document.getElementById('container_potongan_bpjs');
     const lblSelisih = document.getElementById('lbl_selisih_bpjs');
 
+    const contTipeBpjs = document.getElementById('tipe_bpjs_container');
+
     const toggleFakturType = () => {
         if (rBpjs.checked) {
             uiBpjs.classList.remove('d-none');
             uiUmum.classList.add('d-none');
             contNoBpjs.style.display = 'block';
+            contTipeBpjs.style.display = 'block';
             printBpjs.classList.remove('d-none');
             
             cPotongan.classList.add('d-none');
             cPotonganBpjs.classList.remove('d-none');
             lblSelisih.classList.remove('d-none');
+
+            // Auto-fill potongan BPJS dari tipe_bpjs yang sudah dipilih
+            applyPotonganBpjs();
         } else {
             uiBpjs.classList.add('d-none');
             uiUmum.classList.remove('d-none');
             contNoBpjs.style.display = 'none';
+            contTipeBpjs.style.display = 'none';
             printBpjs.classList.add('d-none');
             
             cPotongan.classList.remove('d-none');
             cPotonganBpjs.classList.add('d-none');
             lblSelisih.classList.add('d-none');
+
+            // Reset potongan BPJS saat mode Umum
+            applyPotonganBpjs();
         }
     };
 
@@ -309,6 +319,33 @@ function bindOptionEvents() {
 
     toggleAmbil();
     toggleFakturType();
+
+    // Listener: saat tipe_bpjs berubah, otomatis isi potongan BPJS
+    document.getElementById('tipe_bpjs').addEventListener('change', function () {
+        applyPotonganBpjs();
+    });
+}
+
+/* ==========================================================
+   AUTO-FILL POTONGAN BPJS BERDASARKAN TIPE/KELAS
+   Kelas 1 = 330.000, Kelas 2 = 220.000, Kelas 3 = 165.000
+   Hanya aktif jika tipe faktur = BPJS
+========================================================== */
+function applyPotonganBpjs() {
+    const isBpjs = document.getElementById('bpjs').checked;
+    const tipeBpjs = document.getElementById('tipe_bpjs').value;
+    const inputPotonganBpjs = document.getElementById('input_potongan_bpjs');
+
+    const mapping = {
+        '1': 330000,
+        '2': 220000,
+        '3': 165000,
+    };
+
+    // Hanya isi potongan jika mode BPJS aktif, selain itu 0
+    const potongan = isBpjs ? (mapping[tipeBpjs] || 0) : 0;
+    inputPotonganBpjs.value = formatRibuan(potongan);
+    calculateSisa();
 }
 
 /* ==========================================================
@@ -377,10 +414,13 @@ setupAC(
         document.getElementById('patient-selected-name').textContent = p.nama;
         document.getElementById('patient-selected-badge').classList.remove('d-none');
         document.getElementById('btn-load-history').style.display = '';
-        document.getElementById('no_bpjs_container').style.display = p.no_bpjs ? '' : 'none';
-        document.getElementById('tipe_bpjs_container').style.display = p.tipe_bpjs ? '' : 'none';
-        
-        // AUTO LOAD HISTORY
+        // Hanya tampilkan field BPJS di step2 jika tipe faktur = BPJS
+        const isBpjsMode = document.getElementById('bpjs').checked;
+        document.getElementById('no_bpjs_container').style.display = (isBpjsMode && p.no_bpjs) ? '' : 'none';
+        document.getElementById('tipe_bpjs_container').style.display = (isBpjsMode && p.tipe_bpjs) ? '' : 'none';
+
+        // Auto-fill potongan BPJS jika tipe_bpjs tersedia
+        applyPotonganBpjs();
         loadPatientHistory();
     }
 );
@@ -399,6 +439,9 @@ function clearPatient() {
     document.getElementById('no_bpjs_container').style.display = 'none';
     document.getElementById('tipe_bpjs_container').style.display = 'none';
     document.getElementById('history-tag-container').classList.add('d-none');
+
+    // Reset potongan BPJS
+    applyPotonganBpjs();
 }
 
 // Produk UMUM

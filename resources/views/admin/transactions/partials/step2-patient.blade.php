@@ -55,7 +55,12 @@
                         </div>
                         <div class="col-md-6" id="tipe_bpjs_container">
                             <label class="form-label">Tipe BPJS</label>
-                            <input type="text" name="tipe_bpjs" id="tipe_bpjs" class="form-control form-control-sm" placeholder="000...">
+                            <select name="tipe_bpjs" id="tipe_bpjs" class="form-select form-select-sm">
+                                <option value="">-- Pilih Kelas --</option>
+                                <option value="1">Kelas 1</option>
+                                <option value="2">Kelas 2</option>
+                                <option value="3">Kelas 3</option>
+                            </select>
                         </div>
                         {{-- <div class="col-md-6">
                             <label class="form-label">Potongan BPJS</label>
